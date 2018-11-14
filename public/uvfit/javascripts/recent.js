@@ -68,7 +68,7 @@ function displayMostRecentActivity() {
     }
     else {
     	// ?
-        //potholeText.innerHTML = "Error communicating with server.";
+        //activityText.innerHTML = "Error communicating with server.";
     }    
 }
 

@@ -181,7 +181,7 @@ router.get("/recent/:days", function(req, res) {
         else {  
             var numRecentActivities = 0;
             for (var activity of recentActivities) {
-                // Add activity data to the respone's asctivities array
+                // Add activity data to the response's asctivities array
                 numRecentActivities++;
                 responseJson.activities.push({
                     latitude: activity.loc[1],

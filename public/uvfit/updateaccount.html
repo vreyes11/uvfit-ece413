@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+	 <title>UVFit - Account</title>
+
+	 <!-- Import Google Icon Font -->
+	 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+	 <!-- Import materialize.css -->
+	 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/css/materialize.min.css" media="screen,projection">	
+	 <script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/js/materialize.min.js"></script>
+
+	 <link href="stylesheets/uvfit.css" rel="stylesheet">
+	 <script src="javascripts/status.js" defer></script>
+	 <script src="javascripts/signout.js" defer></script>
+	 <script src="javascripts/updateAccount.js" defer></script>
+
+
+	 <!-- Let browser know website is optimized for mobile -->
+	 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  </head>
+
+<body>
+	<!-- Dropdown Structure -->
+    <ul id="dropdown1" class="dropdown-content">
+      <li><a href="home.html" class="red-text">Home</a></li>
+      <li><a href="recentactivities.html" class="red-text">Recent</a></li>
+      <li class="divider"></li>
+      <li><a href="#!" id="signout" class="red-text">Sign out</a></li>
+    </ul>
+	<nav>
+		<div class="nav-wrapper red darken-2">
+			<a href="home.html" class="brand-logo left"><img id="logo" src="images/think.png"><span id="name">UVFit</span></a>
+			<ul class="right ">
+				<!-- Dropdown Trigger -->
+				<li><a class="dropdown-button" href="#!" data-activates="dropdown1"><i class="material-icons">more_vert</i></a></li>
+			</ul>
+		</div>
+	</nav>
+
+	<div class="row">
+		<div class="col s12 m6">
+			<div class="card red-grey ">
+				<div class="card-content black-text">
+					<span class="card-title">Change Password</span>
+					<div class="input-field">
+						<label for="passwordNew">New Password</label>
+						<input type="password" id="passwordNew" name="passwordNew" >
+					</div>
+					<div class="input-field">
+						<label for="passwordOld">Old Password</label>
+						<input type="password" id="passwordOld" name="passwordOld" >
+					</div>
+					<div class="input-field">
+						<label for="passwordConfirm">Confirm Password</label>
+						<input type="password" id="passwordConfirm" name="passwordConfirm" >
+					</div>
+					<div class="card-action">
+						<div><a id="updatePassword" class="waves-effect waves-light red darken-2 white-text btn">Update password</a></div>
+					</div>
+				</div>
+			</div>
+			
+		<div class="card red-grey ">
+			<div class="card-content black-text">
+				<span class="card-title">Change Username</span>
+				<div class="input-field black-text">
+					<label for="updateName">Username</label>
+					<input type="text" id="updateName" name="updateName" >
+				</div>
+				<div class="card-action">
+					<div><a id="updateFullName" class="waves-effect waves-light red darken-2 white-text btn">Update username</a></div>
+				</div>
+			</div>
+		</div>
+
+		<div class="card red-grey ">
+			<div class="card-content black-text">
+				<span class="card-title">Change Email</span>
+				<div class="input-field">
+					<label for="email">Email</label>
+					<input type="email" id="email" name="email" >
+				</div>
+				<div class="card-action">
+					<div><a id="updateEmail" class="waves-effect waves-light red darken-2 white-text btn">Update email</a></div>
+				</div>
+			</div>
+		</div>
+
+			<div class='green-text text-darken-2' id="success"></div>
+			<div class='red-text text-darken-2' id="error"></div>
+		</div>
+	</div>
+  </body>
+
+  <!-- Initialize dropdown menu in materialize -->
+  <script>
+    $(document).ready(function() {
+		$(".dropdown-button").dropdown();
+	 })
+  </script>
+
+</html>

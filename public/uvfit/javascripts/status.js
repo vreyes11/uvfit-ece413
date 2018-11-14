@@ -9,6 +9,17 @@ function sendReqForAccountInfo() {
    });
 }
 
+function sendReqForUpdateDeviceId() {
+	/*$.ajax({
+      url: '/users/account',
+      type: 'GET',
+      headers: { 'x-auth': window.localStorage.getItem("authToken") },
+      responseType: 'json',
+      success: accountInfoSuccess,
+      error: accountInfoError
+   });*/
+}
+
 function accountInfoSuccess(data, textSatus, jqXHR) {
    $("#email").html(data.email);
    $("#fullName").html(data.fullName);
@@ -17,9 +28,17 @@ function accountInfoSuccess(data, textSatus, jqXHR) {
    
    // Add the devices to the list before the list item for the add device button (link)
    for (var device of data.devices) {
-      $("#addDeviceForm").before("<li class='collection-item'>ID: " +
-        device.deviceId + ", APIKEY: " + device.apikey + "</li>")
+      $("#addDeviceForm").before("<li class='collection-item' id=" + device.apikey + ">ID: " +
+        device.deviceId + ", APIKEY: " + device.apikey + "</li>");
    }
+	for (var device of data.devices) {
+		$('#' + device.apikey).each(function(i)
+			{
+				$(this).click(showUpdateDeviceForm);
+				//FIXME:
+				console.log(this);
+			});
+	}	
 }
 
 function accountInfoError(jqXHR, textStatus, errorThrown) {
@@ -72,6 +91,31 @@ function hideAddDeviceForm() {
    $("#error").hide();
 }
 
+// Show update device form and hide the update and device button (really a link)
+function showUpdateDeviceForm() {
+	$(event.target).off('click');
+	$(event.target).val("");
+	console.log("H!");	
+	$(event.target).append("<input type='text' value=''/>"); 
+	// show update and cancel buttons
+	//$("#updateDevice").show();
+	//$("#cancelUpdate").show();
+
+	// append cnacel adn update buttons after li element
+	$(event.target).append("<button id='updateDevice' class='waves-effect waves-light red btn'>Update</button>");	
+	$(event.target).append("<button id='cancelUpdate' class='waves-effect waves-light red btn'>Cancel</button>");
+
+	// add click event listeners to buttons
+	$('#updateDevice').click(sendReqForUpdateDeviceId);
+	$('#cancelUpdate').click(hideUpdateDeviceForm);
+}
+
+function hideUpdateDeviceForm() {
+	$('devices li').hide();
+	// TODO: Hide the input, maybe delete it
+	console.log('hide');
+}
+
 // Handle authentication on page load
 $(function() {
    // If there's no authToekn stored, redirect user to 
@@ -83,8 +127,9 @@ $(function() {
       sendReqForAccountInfo();
    }
    
-   // Register event listeners
+	// Register event listeners
    $("#addDevice").click(showAddDeviceForm);
    $("#registerDevice").click(registerDevice);   
    $("#cancel").click(hideAddDeviceForm);   
 });
+

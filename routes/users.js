@@ -6,7 +6,9 @@ var Device = require("../models/device");
 var bcrypt = require("bcrypt-nodejs");
 var jwt = require("jwt-simple");
 
-/* Authenticate user */
+///////////////////////////////////////////////////////////////////////////////////////////
+//* Authenticate user */
+////////////////////////////////////////////////////////
 var secret = fs.readFileSync(__dirname + '/../jwtkey').toString();
 
 router.post('/signin', function(req, res, next) {
@@ -34,7 +36,9 @@ router.post('/signin', function(req, res, next) {
    });
 });
 
-/* Register a new user */
+///////////////////////////////////////////////////////////////////////////////////////////
+//* Register a new user */
+////////////////////////////////////////////////////////
 router.post('/register', function(req, res, next) {
 
     // FIXME: Add input validation
@@ -58,6 +62,83 @@ router.post('/register', function(req, res, next) {
     });    
 });
 
+///////////////////////////////////////////////////////////////////////////////////////////
+//* Update user account information */
+////////////////////////////////////////////////////////
+router.post('/update', function(req, res, next) {
+   // using email in x-auth token in order to find user
+	// Check for authentication token in x-auth header
+   if (!req.headers["x-auth"]) {
+	   return res.status(401).json({success: false, message: "No authentication token"});
+   }
+
+   // decode authToken
+   var authToken = req.headers["x-auth"];
+   try {
+      var decodedToken = jwt.decode(authToken, secret);
+      var userStatus = {};
+   } catch(ex) {
+      return res.status(401).json({success: false, message: "Invalid authentication token."});
+   }
+	
+	// update user fullName based on sent information
+	if(req.body.hasOwnProperty('fullName')) {
+		var fullName = req.body.fullName;
+		//FIXME: debug
+		console.log(fullName);
+
+		User.where({ email: decodedToken.email})
+			.update({ $set: { fullName: fullName } })
+			.setOptions({ multi: false })
+			.exec(function(err, status) {
+				if(err) {
+					return res.status(400).json({success: false, message: "User does not exist."});
+				} else {
+               		return res.status(201).json({success: true, message: "User name updated."});            
+				}
+			});
+	}
+	
+	// update user email & generate new token
+	if(req.body.hasOwnProperty('email')) {
+		var email = req.body.email;
+		//FIXME: debug
+		console.log(email);
+		User.where({ email: decodedToken.email})
+			.update({ $set: { email: email } })
+			.setOptions({ multi: false })
+			.exec(function(err, status) {
+				if(err) {
+					return res.status(400).json({success: false, message: "User does not exist."});
+				} else {
+					// generate new token, upon updating email
+				    var token = jwt.encode({email: req.body.email}, secret);
+               		return res.status(201).json({success: true, token: token, message: "User email updated."});            
+				}
+			});
+		
+	}
+	
+	if(req.body.hasOwnProperty('passwordNew')) {
+		console.log("passwordNew: " + req.body.passwordNew);
+		bcrypt.hash(req.body.passwordNew, null, null, function(err, hash) {
+			User.where({ email: decodedToken.email})
+				.update({ $set: { passwordHash: hash } })
+				.setOptions({ multi: false })
+				.exec(function(err, status) {
+					if(err) {
+						return res.status(400).json({success: false, message: "User does not exist."});
+					} else {
+						return res.status(201).json({success: true, message: "User password updated."});            
+					}
+				});
+		});
+	}	
+});
+
+///////////////////////////////////////////////////////////////////////////////////////////
+// Get account information
+////////////////////////////////////////////////////////
 router.get("/account" , function(req, res) {
    // Check for authentication token in x-auth header
    if (!req.headers["x-auth"]) {
