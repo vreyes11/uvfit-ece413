@@ -10,14 +10,62 @@ function sendReqForAccountInfo() {
 }
 
 function sendReqForUpdateDeviceId() {
-	/*$.ajax({
-      url: '/users/account',
-      type: 'GET',
-      headers: { 'x-auth': window.localStorage.getItem("authToken") },
-      responseType: 'json',
-      success: accountInfoSuccess,
-      error: accountInfoError
-   });*/
+	// extract id device number from clicked li element's id
+	// ex: if id="device2", then var deviceNum = 2
+	var deviceNum = event.target.id.match(/\d+/)[0];
+	var deviceId = $('#updateInput' + deviceNum).val();
+	
+	// get APIkey from device li
+	// NOTE: Depends on APIKey being 32 characters
+	var apikey = $('#device' + deviceNum).text().match(/[\w\d]{32}/)[0];
+
+    $.ajax({
+        url: '/devices/update',
+        type: 'POST',
+        headers: { 'x-auth': window.localStorage.getItem("authToken") },   
+        data: { deviceId: deviceId, apikey: apikey }, 
+        responseType: 'json',
+        success: function (data, textStatus, jqXHR) {
+           // Update device to the device list
+		console.log(data);
+           hideAddDeviceForm();
+		   window.location = "home.html";
+		   
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+            var response = JSON.parse(jqXHR.responseText);
+            $("#error").html("Error: " + response.message);
+            $("#error").show();
+        }
+    }); 
+}
+
+function sendReqForDeleteDevice() {
+	// extract id device number from clicked li element's id
+	// ex: if id="device2", then var deviceNum = 2
+	var deviceNum = event.target.id.match(/\d+/)[0];
+	
+	// get APIkey from device li
+	// NOTE: Depends on APIKey being 32 characters
+	var apikey = $('#device' + deviceNum).text().match(/[\w\d]{32}/)[0];
+
+    $.ajax({
+        url: '/devices/delete',
+        type: 'DELETE',
+        headers: { 'x-auth': window.localStorage.getItem("authToken") },   
+        data: { apikey: apikey }, 
+        responseType: 'json',
+        success: function (data, textStatus, jqXHR) {
+           hideAddDeviceForm();
+		   window.location = "home.html";
+		   
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+            var response = JSON.parse(jqXHR.responseText);
+            $("#error").html("Error: " + response.message);
+            $("#error").show();
+        }
+    }); 
 }
 
 function accountInfoSuccess(data, textSatus, jqXHR) {
@@ -27,17 +75,70 @@ function accountInfoSuccess(data, textSatus, jqXHR) {
    $("#main").show();
    
    // Add the devices to the list before the list item for the add device button (link)
+   var devicesIndex = 0;
    for (var device of data.devices) {
-      $("#addDeviceForm").before("<li class='collection-item' id=" + device.apikey + ">ID: " +
+      $("#addDeviceForm").before("<li class='collection-item' id=device" + devicesIndex + ">ID: " +
         device.deviceId + ", APIKEY: " + device.apikey + "</li>");
+
+	   // append cancel and update buttons and input after li element	
+	   $('#device' + devicesIndex).after("<button id='updateDevice" + devicesIndex + "' class='waves-effect waves-light red btn'>Update</button>");
+	   $('#device' + devicesIndex).after("<button id='cancelUpdate" + devicesIndex + "' class='waves-effect waves-light red btn'>Cancel</button>");
+	   $('#device' + devicesIndex).after("<button id='deleteId" + devicesIndex + "' class='waves-effect waves-light red btn'>Remove device</button>");
+	    
+
+	   $('#device' + devicesIndex).after("<div input-field col s12 id='updateDiv" + devicesIndex + "'>" +  
+		   										"<input id='updateInput" + devicesIndex + "' type='text' value=''>" + 
+	   											"<label for='updateInput" + devicesIndex + "'>New device id</label>" + 
+	   										"</div>"); 
+	   // hide elements created above
+	   $('#updateInput' + devicesIndex).hide();
+	   $('#updateDevice' + devicesIndex).hide();
+	   $('#cancelUpdate' + devicesIndex).hide();
+	   $('#updateDiv' + devicesIndex).hide();
+	   $('#deleteId' + devicesIndex).hide();
+	   
+		
+	   // register click event listeners on li and buttons/input
+	   $('#device' + devicesIndex).click(showUpdateDeviceForm);
+	   $('#updateDevice' + devicesIndex).click(sendReqForUpdateDeviceId);
+	   $('#cancelUpdate' + devicesIndex).click(hideUpdateDeviceForm);
+	   $('#deleteId' + devicesIndex).click(sendReqForDeleteDevice);
+
+	   devicesIndex++;
    }
-	for (var device of data.devices) {
-		$('#' + device.apikey).each(function(i)
-			{
-				$(this).click(showUpdateDeviceForm);
-				//FIXME:
-				console.log(this);
-			});
+}
+
+function showUpdateDeviceForm() {
+	// extract id device number from clicked li element's id
+	// ex: if id="device2", then var deviceNum = 2
+	var deviceNum = event.target.id.match(/\d+/)[0];
+
+	// show cancel and update button and updateInput elements
+	// for the device li element that was clicked
+   	$('#updateInput' + deviceNum).slideDown();
+   	$('#updateDevice' + deviceNum).css('display', 'block');
+   	$('#cancelUpdate' + deviceNum).slideDown();
+   	$('#updateDiv' + deviceNum).slideDown();
+	$('#deleteId' + deviceNum).slideDown();
+	
+}
+
+function hideUpdateDeviceForm() {
+	// extract id device number from clicked li element's id
+	// ex: if id="device2", then var deviceNum = 2
+	var deviceNum = event.target.id.match(/\d+/)[0];
+	console.log("In hideUpdate: " + deviceNum);
+	
+	// hide buttons and input (#updateInput)
+	$("#cancelUpdate" + deviceNum).hide();
+	$("#updateDevice" + deviceNum).hide();
+	$('#deleteId' + deviceNum).hide();
+	$("#updateDiv" + deviceNum).slideUp();
+	
+	// re-enable click event listener to deviceId div
+	// FIXME: Assuming less than 100 devices
+	for(var i = 0; i < 10; i++) {
+		$('#device' + i).on("click", showUpdateDeviceForm);
 	}	
 }
 
@@ -65,8 +166,12 @@ function registerDevice() {
         responseType: 'json',
         success: function (data, textStatus, jqXHR) {
            // Add new device to the device list
-           $("#addDeviceForm").before("<li class='collection-item'>ID: " +
+           $("#addDeviceForm").before("<li class='collection-item' id='device0'>ID: " +
            $("#deviceId").val() + ", APIKEY: " + data["apikey"] + "</li>")
+		   
+		   //TODO: make a new device clickable without refreshing the page
+			$('#device0').click(showUpdateDeviceForm);
+		   
            hideAddDeviceForm();
         },
         error: function(jqXHR, textStatus, errorThrown) {
@@ -89,31 +194,6 @@ function hideAddDeviceForm() {
    $("#addDeviceControl").show();  // Hide the add device link
    $("#addDeviceForm").slideUp();  // Show the add device form
    $("#error").hide();
-}
-
-// Show update device form and hide the update and device button (really a link)
-function showUpdateDeviceForm() {
-	$(event.target).off('click');
-	$(event.target).val("");
-	console.log("H!");	
-	$(event.target).append("<input type='text' value=''/>"); 
-	// show update and cancel buttons
-	//$("#updateDevice").show();
-	//$("#cancelUpdate").show();
-
-	// append cnacel adn update buttons after li element
-	$(event.target).append("<button id='updateDevice' class='waves-effect waves-light red btn'>Update</button>");	
-	$(event.target).append("<button id='cancelUpdate' class='waves-effect waves-light red btn'>Cancel</button>");
-
-	// add click event listeners to buttons
-	$('#updateDevice').click(sendReqForUpdateDeviceId);
-	$('#cancelUpdate').click(hideUpdateDeviceForm);
-}
-
-function hideUpdateDeviceForm() {
-	$('devices li').hide();
-	// TODO: Hide the input, maybe delete it
-	console.log('hide');
 }
 
 // Handle authentication on page load

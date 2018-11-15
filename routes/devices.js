@@ -48,6 +48,9 @@ router.get('/status/:devid', function(req, res, next) {
     });
 });
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+// Register a new device
+///////////////////////////////////////////////////////////////////////////
 router.post('/register', function(req, res, next) {
     var responseJson = {
         registered: false,
@@ -125,4 +128,97 @@ router.post('/register', function(req, res, next) {
     });
 });
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+// Update a device's id
+///////////////////////////////////////////////////////////////////////////
+router.post('/update', function(req, res, next) {
+    var responseJson = {
+        registered: false,
+        message : "",
+        apikey : "none"
+    };
+    var deviceExists = false;
+	
+    // TODO: req.body.hasOwnProperty() is not working here, need to fix
+    // Ensure the request includes the deviceId parameter
+    /*if( !req.body.hasOwnProperty("deviceId")) {
+        responseJson.message = "Missing deviceId.";
+        return res.status(400).json(responseJson);
+    }
+    if( !req.body.hasOwnProperty("apiKey")) {
+        responseJson.message = "Missing apiKey.";
+        return res.status(400).json(responseJson);
+    }*/
+
+    var email = "";
+    
+    // If authToken provided, use email in authToken 
+    if (req.headers["x-auth"]) {
+        try {
+            var decodedToken = jwt.decode(req.headers["x-auth"], secret);
+            email = decodedToken.email;
+        }
+        catch (ex) {
+            responseJson.message = "Invalid authorization token.";
+            return res.status(400).json(responseJson);
+        }
+    }
+    else {
+        // Ensure the request includes the email parameter
+        if( !req.body.hasOwnProperty("email")) {
+            responseJson.message = "Invalid authorization token or missing email address.";
+            return res.status(400).json(responseJson);
+        }
+        email = req.body.email;
+    }
+    
+	// update the device's deviceID based on old device id
+	Device.where({ apikey: req.body.apikey})
+		.update({ $set: { deviceId: req.body.deviceId } })
+		.setOptions({ multi: false })
+		.exec(function(err, status) {
+			if(err) {
+				return res.status(400).json({success: false, message: "Device does not exist."});
+			} else {
+				return res.status(201).json({success: true, message: "DeviceId updated."});            
+			}
+		});   
+});
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+// Delete a device
+///////////////////////////////////////////////////////////////////////////
+router.delete('/delete', function(req, res, next) {
+	console.log("apikey = " + req.body.apikey);
+
+    var email = "";
+    
+    // If authToken provided, use email in authToken 
+    if (req.headers["x-auth"]) {
+        try {
+            var decodedToken = jwt.decode(req.headers["x-auth"], secret);
+            email = decodedToken.email;
+        }
+        catch (ex) {
+            responseJson.message = "Invalid authorization token.";
+            return res.status(400).json(responseJson);
+        }
+    }
+    else {
+        // Ensure the request includes the email parameter
+        if( !req.body.hasOwnProperty("email")) {
+            responseJson.message = "Invalid authorization token or missing email address.";
+            return res.status(400).json(responseJson);
+        }
+        email = req.body.email;
+    }
+    
+	Device.remove({ apikey: req.body.apikey}, function(err, status){
+		if(err) {
+			return res.status(400).json({success: false, message: "Device does not exist."});
+		} else {
+			return res.status(201).json({success: true, message: "Device deleted."});            	
+		}
+	});
+});
 module.exports = router;
