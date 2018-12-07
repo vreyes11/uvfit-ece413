@@ -6,7 +6,8 @@ var userSchema = new db.Schema({
   passwordHash: String,
   lastAccess:   { type: Date, default: Date.now },
   userDevices:  [ String ],
-  activities: [ { date: Date, caloriesBurned: Number, uvExposure: Number, speed: Number  }]
+  activities: [ { date: Date, caloriesBurned: Number, uvExposure: Number, speed: Number  }],
+  uvThreshold: { type: Number, default: 6 } // defines threshold for IOT device to warn user
 });
 
 var User = db.model("User", userSchema);

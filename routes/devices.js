@@ -131,7 +131,7 @@ router.post('/register', function(req, res, next) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 // Update a device's id
 ///////////////////////////////////////////////////////////////////////////
-router.post('/update', function(req, res, next) {
+router.put('/update', function(req, res, next) {
     var responseJson = {
         registered: false,
         message : "",
@@ -139,17 +139,6 @@ router.post('/update', function(req, res, next) {
     };
     var deviceExists = false;
 	
-    // TODO: req.body.hasOwnProperty() is not working here, need to fix
-    // Ensure the request includes the deviceId parameter
-    /*if( !req.body.hasOwnProperty("deviceId")) {
-        responseJson.message = "Missing deviceId.";
-        return res.status(400).json(responseJson);
-    }
-    if( !req.body.hasOwnProperty("apiKey")) {
-        responseJson.message = "Missing apiKey.";
-        return res.status(400).json(responseJson);
-    }*/
-
     var email = "";
     
     // If authToken provided, use email in authToken 

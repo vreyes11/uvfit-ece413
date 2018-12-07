@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>UVFit - Summary</title>
+
+	 <!-- Import Google Icon Font -->
+	 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+	 <!-- Import materialize.css -->
+	 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/css/materialize.min.css" media="screen,projection">	
+	 <script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/js/materialize.min.js"></script>
+   
+    <link href="stylesheets/uvfit.css" rel="stylesheet">
+    <script src="javascripts/signout.js" defer></script>
+	<script src="javascripts/recentsummary.js"></script>
+        
+    <!--Let browser know website is optimized for mobile-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  </head>
+  <body>
+	  <nav>
+		  <div class="nav-wrapper red darken-2">
+			  <a href="home.html" class="brand-logo left"><img id="logo" src="images/think.png"><span id="name">UVFit</span></a>
+			  <a href="#" data-activates="mobile-demo" class=" right button-collapse"><i class="material-icons">menu</i></a>
+			  <ul class="right hide-on-med-and-down">
+				  <li><a href="home.html" class="white-text">Home</a></li>
+				  <li><a href="summaryview.html" class="white-text">Summary</a></li>
+				  <li><a href="activitieslist.html" class="white-text">Activities list</a></li>
+				  <li><a href="recentactivities.html" class="white-text">Recent</a></li>
+				  <li class="divider"></li>
+				  <li><a href="#!" id="signout" class="white-text">Sign out</a></li>
+			  </ul>
+		  </div>
+	  </nav>
+	  <!-- Dropdown Structure -->
+	  <ul class="side-nav" id="mobile-demo">
+		  <li><a href="home.html" class="red-text">Home</a></li>
+		  <li><a href="summaryview.html" class="red-text">Summary</a></li>
+		  <li><a href="activitieslist.html" class="red-text">Activities list</a></li>
+		  <li><a href="recentactivities.html" class="red-text">Recent</a></li>
+		  <li class="divider"></li>
+		  <li><a href="#!" id="signout" class="red-text">Sign out</a></li>
+	  </ul>
+	  
+	  <div class="row" id="main" style="display: block">
+		  <div class="col s12 m7">
+			  <div class="card">
+				  <div class="card-image">
+					  <img src="images/sunset.jpeg">
+					  <span class="card-title">Summary</span>
+				  </div>
+				  <div class="card-content">
+				  	<ul class="collection">
+						<li class="collection-item">Total activity duration: <span id="totalDuration"></span> minutes</li>
+						<li class="collection-item">Total UV exposure: <span id="totalUV"></span></li>
+						<li class="collection-item">Total calories burned: <span id="totalCals"> calories</span></li>
+					</ul>
+					<div class="red-text" id="errorDiv"></div>
+				  </div>
+			  </div>
+		  </div>
+	  </div>
+  </body>
+
+  <!-- Initialize dropdown menu in materialize -->
+  <script>
+	  $(document).ready(function(){
+		  $(".button-collapse").sideNav({
+			  closeOnClick: true,
+			  edge: 'right',
+		  });
+	  });
+  </script>
+</html>

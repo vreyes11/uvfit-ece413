@@ -1,25 +1,33 @@
 function sendPasswordReqForUpdate() {
-  var passwordConfirm = document.getElementById("passwordConfirm").value;
-  var passwordOld = document.getElementById("passwordOld").value;
-  var passwordNew = document.getElementById("passwordNew").value;
-		
-	
-  // FIXME: More thorough validation should be performed here. 
-  if (passwordOld != passwordConfirm) {
-    var responseDiv = document.getElementById('ServerResponse');
-    responseDiv.style.display = "block";
-    responseDiv.innerHTML = "<p>Password does not match.</p>";
-    return;
-  }
- 
-  var xhr = new XMLHttpRequest();
-  var token = window.localStorage.getItem("authToken");
-  xhr.addEventListener("load", updateResponse);
-  xhr.responseType = "json";
-  xhr.open("POST", '/users/update');
-  xhr.setRequestHeader("Content-type", "application/json");
-  xhr.setRequestHeader("x-auth", token);
-  xhr.send(JSON.stringify({passwordNew:passwordNew}));
+	var passwordConfirm = document.getElementById("passwordConfirm").value;
+	var passwordOld = document.getElementById("passwordOld").value;
+	var passwordNew = document.getElementById("passwordNew").value;
+
+	// FIXME: More thorough validation should be performed here. 
+	if (passwordOld != passwordConfirm) {
+		var passwordErrorDiv = document.getElementById('passwordError');
+		passwordErrorDiv.style.display = "block";
+		passwordErrorDiv.innerHTML = "<p>Password does not match.</p>";
+		return;
+	}
+	// check for strong password
+	// 1. At least 1 upper case, 1 lower case, 1 number/special char, greater than 6 chars
+	var re = /(?=^.{6,}$)((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/;
+	if(!re.test(passwordNew)) {
+		var passwordErrorDiv = document.getElementById('passwordError');
+		passwordErrorDiv.style.display = "block";
+		passwordErrorDiv.innerHTML = "<p>Password is not a strong password. Match the criteria  and try again.</p>";
+		return;	
+	}
+
+	var xhr = new XMLHttpRequest();
+	var token = window.localStorage.getItem("authToken");
+	xhr.addEventListener("load", updateResponse);
+	xhr.responseType = "json";
+	xhr.open("PUT", '/users/update');
+	xhr.setRequestHeader("Content-type", "application/json");
+	xhr.setRequestHeader("x-auth", token);
+	xhr.send(JSON.stringify({passwordNew:passwordNew}));
 }
 
 function sendNameReqForUpdate() {
@@ -31,7 +39,7 @@ function sendNameReqForUpdate() {
   var token = window.localStorage.getItem("authToken");
   xhr.addEventListener("load", updateResponse);
   xhr.responseType = "json";
-  xhr.open("POST", '/users/update');
+  xhr.open("PUT", '/users/update');
   xhr.setRequestHeader("Content-type", "application/json");
   xhr.setRequestHeader("x-auth", token);
   xhr.send(JSON.stringify({fullName: updateName}));
@@ -40,13 +48,20 @@ function sendNameReqForUpdate() {
 function sendEmailReqForUpdate() {
   var email = document.getElementById("email").value;
 		
-  // FIXME: More thorough validation should be performed here. 
-		
+  // email validation done here
+  var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+	if(!re.test(email)) { // if invalid email, return with error message
+		var emailErrorDiv = document.getElementById('emailError');
+		emailErrorDiv.style.display = "block";
+		emailErrorDiv.innerHTML = "<p>Email is invalid. Please try a valid email.</p>";
+		return;
+	}
+
   var xhr = new XMLHttpRequest();
   var token = window.localStorage.getItem("authToken");
   xhr.addEventListener("load", updateResponse);
   xhr.responseType = "json";
-  xhr.open("POST", '/users/update');
+  xhr.open("PUT", '/users/update');
   xhr.setRequestHeader("Content-type", "application/json");
   xhr.setRequestHeader("x-auth", token);
   xhr.send(JSON.stringify({email: email}));

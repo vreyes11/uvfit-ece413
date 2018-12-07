@@ -1,0 +1,36 @@
+Requirements (ECE 413 and 513)
+Account Creation and Management
+DONE -	A user must be able to create an account, using an email address as the username and a strong password, and register at least one device with their account.
+DONE -	A user should be able to update any of their account information.
+DONE -	A user should be able to replace a device with a new device in their account.
+
+UVFit IoT Device
+	The user should use a button on the IoT device to start and stop activities. 
+	The IoT device should use the onboard LEDs to indicate the activity status. 
+	During an activity, the IoT device should periodically record the GPS location, speed, and UV exposure, at least at a rate of once per second.
+	If the UV exposure during an activity exceeds a user defined threshold (the threshold will be set in the web application), an alert should be provided on the IoT device.
+	After an activity is complete, the IoT device should transmit the activity data to the server.
+	If the WiFi connection is not available, the IoT device should locally store the data for up to 24 hours and submit the data when later connected.
+DONE -	The server should require an APIKEY from the IoT device for posting activity data.
+
+Web Application
+	The web application should support the following views (each of which should be visually appealing): 
+TEST -	A summary view showing the user’s total activity duration, total calories burned, and total UV exposure in the past 7 days.
+TEST -	An activities list view that lists all fitness activities with data summarizing each activity (e.g., date of activity, duration of activity, calories burned, UV exposure).
+	An activity view for a selected activity that will display the activity date, duration, UV exposure, activity type, calories burned, and plot the user’s route for the activity on a map.
+	In the activity view, the web application should allow a user to change the activity type. Activity types should minimally support walking, running, and biking.
+TEST -	The calculation of calories burned should be based on the activity type for each activity. 
+TEST -	The web application should allow the user to define a UV threshold that defines the total UV exposure beyond which the IoT device should alert the user during an activity.
+DONE -	The web application should have a navigation menu.
+DONE -	The web application should use responsive design to be viewable on desktops, tablets, and smartphones.
+
+Server 
+DONE -	When an activity is sent to the server by the IoT device, the server should assign a default activity type based on the speed data. 
+DONE -	Your server must be implemented using Node.js, Express, and MongoDB.
+DONE -	Your server’s endpoints must use RESTful APIs. Each endpoint must have accompanying documentation that describes the behavior, the expected parameters, and responses.
+DONE -	Access to the web application should be controlled using token based authentication.
+
+Third Party APIs and Libraries
+DONE -	You may use additional third party APIs.
+DONE - You may use open source JavaScript libraries.
+DONE -	You may use open source CSS libraries.

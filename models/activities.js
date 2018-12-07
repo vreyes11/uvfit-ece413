@@ -5,7 +5,10 @@ var activities = new db.Schema({
     loc:           { type: [Number], index: '2dsphere'},
     uvExposure: Number,
     speed: Number,
-    submitTime: { type: Date, default: Date.now }
+    submitTime: { type: Date, default: Date.now },
+	duration: Number,
+	activityType: { type: String, default: "walking" }
+		// supported activity types are: walking, running, and biking.
 });
 
 // Creates a Devices (plural) collection in the db using the fitData schema

@@ -8,7 +8,7 @@ function getRecentActivities() {
     var xhr = new XMLHttpRequest();
     xhr.addEventListener("load", displayMostRecentActivity);
     xhr.responseType = "json";   
-    xhr.open("GET", "/activities/recent/10");
+    xhr.open("GET", "/activities/recent/7");
     xhr.setRequestHeader("x-auth", token);
     xhr.send();
 }

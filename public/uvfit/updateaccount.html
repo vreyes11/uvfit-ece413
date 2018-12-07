@@ -22,22 +22,29 @@
   </head>
 
 <body>
-	<!-- Dropdown Structure -->
-    <ul id="dropdown1" class="dropdown-content">
-      <li><a href="home.html" class="red-text">Home</a></li>
-      <li><a href="recentactivities.html" class="red-text">Recent</a></li>
-      <li class="divider"></li>
-      <li><a href="#!" id="signout" class="red-text">Sign out</a></li>
-    </ul>
 	<nav>
 		<div class="nav-wrapper red darken-2">
 			<a href="home.html" class="brand-logo left"><img id="logo" src="images/think.png"><span id="name">UVFit</span></a>
-			<ul class="right ">
-				<!-- Dropdown Trigger -->
-				<li><a class="dropdown-button" href="#!" data-activates="dropdown1"><i class="material-icons">more_vert</i></a></li>
+			<a href="#" data-activates="mobile-demo" class=" right button-collapse"><i class="material-icons">menu</i></a>
+			<ul class="right hide-on-med-and-down">
+				<li><a href="home.html" class="white-text">home</a></li>
+				<li><a href="summaryview.html" class="white-text">summary</a></li>
+				<li><a href="activitieslist.html" class="white-text">activities list</a></li>
+				<li><a href="recentactivities.html" class="white-text">recent</a></li>
+				<li class="divider"></li>
+				<li><a href="#!" id="signout" class="white-text">sign out</a></li>
 			</ul>
 		</div>
 	</nav>
+	<!-- Dropdown Structure -->
+	<ul class="side-nav" id="mobile-demo">
+		<li><a href="home.html" class="red-text">home</a></li>
+		<li><a href="summaryview.html" class="red-text">summary</a></li>
+		<li><a href="activitieslist.html" class="red-text">activities list</a></li>
+		<li><a href="recentactivities.html" class="red-text">recent</a></li>
+		<li class="divider"></li>
+		<li><a href="#!" id="signout" class="red-text">sign out</a></li>
+	</ul>
 
 	<div class="row">
 		<div class="col s12 m6">
@@ -47,17 +54,26 @@
 					<div class="input-field">
 						<label for="passwordNew">New Password</label>
 						<input type="password" id="passwordNew" name="passwordNew" >
+						<h6>Password must meet the following requirments:</h6>
+						<ul class="collection">
+							<li class="collection-item">Must contain at leat 1 upper case letter.</li>
+							<li class="collection-item">Must contain at leat 1 lower case letter.</li>
+							<li class="collection-item">Must contain at leat 1 number or special character.</li>
+							<li class="collection-item">Must be at least 6 characters in length.</li>
+						</ul>
 					</div>
 					<div class="input-field">
 						<label for="passwordOld">Old Password</label>
 						<input type="password" id="passwordOld" name="passwordOld" >
 					</div>
 					<div class="input-field">
-						<label for="passwordConfirm">Confirm Password</label>
+						<label for="passwordConfirm">Confirm Old Password</label>
 						<input type="password" id="passwordConfirm" name="passwordConfirm" >
 					</div>
 					<div class="card-action">
 						<div><a id="updatePassword" class="waves-effect waves-light red darken-2 white-text btn">Update password</a></div>
+						<div id="passwordSuccess" class='green-text text-darken-2'></div>
+						<div id="passwordError" class='red-text text-darken-2'></div>
 					</div>
 				</div>
 			</div>
@@ -71,6 +87,8 @@
 				</div>
 				<div class="card-action">
 					<div><a id="updateFullName" class="waves-effect waves-light red darken-2 white-text btn">Update username</a></div>
+					<div id="nameSuccess" class='green-text text-darken-2'></div>
+					<div id="nameError" class='red-text text-darken-2'></div>
 				</div>
 			</div>
 		</div>
@@ -84,6 +102,8 @@
 				</div>
 				<div class="card-action">
 					<div><a id="updateEmail" class="waves-effect waves-light red darken-2 white-text btn">Update email</a></div>
+					<div id="emailSuccess" class='green-text text-darken-2'></div>
+					<div id="emailError" class='red-text text-darken-2'></div>
 				</div>
 			</div>
 		</div>
@@ -96,9 +116,14 @@
 
   <!-- Initialize dropdown menu in materialize -->
   <script>
-    $(document).ready(function() {
-		$(".dropdown-button").dropdown();
-	 })
+	  $(document).ready(function(){
+		  $(".button-collapse").sideNav({
+			  menuWidth: 300,
+			  closeOnClick: true,
+			  edge: 'right',
+		  });
+	  });
+
   </script>
 
 </html>

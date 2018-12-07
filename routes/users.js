@@ -65,7 +65,7 @@ router.post('/register', function(req, res, next) {
 ///////////////////////////////////////////////////////////////////////////////////////////
 //* Update user account information */
 ////////////////////////////////////////////////////////
-router.post('/update', function(req, res, next) {
+router.put('/update', function(req, res, next) {
    // using email in x-auth token in order to find user
 	// Check for authentication token in x-auth header
    if (!req.headers["x-auth"]) {
@@ -115,8 +115,23 @@ router.post('/update', function(req, res, next) {
 				    var token = jwt.encode({email: req.body.email}, secret);
                		return res.status(201).json({success: true, token: token, message: "User email updated."});            
 				}
+			});	
+	}
+
+	// update user uvThreshold based on sent information
+	if(req.body.hasOwnProperty('uvThreshold')) {
+		var newThreshold = req.body.uvThreshold;
+
+		User.where({ email: decodedToken.email})
+			.update({ $set: { uvThreshold: newThreshold } })
+			.setOptions({ multi: false })
+			.exec(function(err, status) {
+				if(err) {
+					return res.status(400).json({success: false, message: "User does not exist."});
+				} else {
+               		return res.status(201).json({success: true, message: "UV threshold updated."});            
+				}
 			});
-		
 	}
 	
 	if(req.body.hasOwnProperty('passwordNew')) {
@@ -135,6 +150,42 @@ router.post('/update', function(req, res, next) {
 		});
 	}	
 });
+// PUT: Update uvThreshold
+router.put('/update/uv-threshold', function(req, res, next) {
+	// TODO: req.body.hasOwnProperty() is not working
+	//if(!req.body.hasOwnProperty('uvThreshold')) {
+	//	return res.status(400).json({success: false, message: "Missing property uvThreshold."});	
+	//}
+	var newThreshold = req.body.uvThreshold;
+
+   // using email in x-auth token in order to find user
+	// Check for authentication token in x-auth header
+   if (!req.headers["x-auth"]) {
+	   return res.status(401).json({success: false, message: "No authentication token"});
+   }
+
+   // decode authToken
+   var authToken = req.headers["x-auth"];
+   try {
+      var decodedToken = jwt.decode(authToken, secret);
+      var userStatus = {};
+   } catch(ex) {
+      return res.status(401).json({success: false, message: "Invalid authentication token."});
+   }
+	
+	// update user uvThreshold based on sent information
+	User.where({ email: decodedToken.email})
+		.updateOne({ $set: { uvThreshold: newThreshold } })
+		.setOptions({ multi: false })
+		.exec(function(err, status) {
+			if(err) {
+				return res.status(400).json({success: false, message: "User does not exist."});
+			} else {
+				return res.status(201).json({success: true, message: "UV threshold updated."});            
+			}
+		});
+});
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // Get account information
@@ -160,6 +211,7 @@ router.get("/account" , function(req, res) {
             userStatus['email'] = user.email;
             userStatus['fullName'] = user.fullName;
             userStatus['lastAccess'] = user.lastAccess;
+            userStatus['uvThreshold'] = user.uvThreshold;
             
             // Find devices based on decoded token
 		      Device.find({ userEmail : decodedToken.email}, function(err, devices) {

@@ -21,7 +21,7 @@ function sendReqForUpdateDeviceId() {
 
     $.ajax({
         url: '/devices/update',
-        type: 'POST',
+        type: 'PUT',
         headers: { 'x-auth': window.localStorage.getItem("authToken") },   
         data: { deviceId: deviceId, apikey: apikey }, 
         responseType: 'json',
@@ -72,6 +72,7 @@ function accountInfoSuccess(data, textSatus, jqXHR) {
    $("#email").html(data.email);
    $("#fullName").html(data.fullName);
    $("#lastAccess").html(data.lastAccess);
+   $("#uvThreshold").html(data.uvThreshold);
    $("#main").show();
    
    // Add the devices to the list before the list item for the add device button (link)
@@ -96,8 +97,7 @@ function accountInfoSuccess(data, textSatus, jqXHR) {
 	   $('#cancelUpdate' + devicesIndex).hide();
 	   $('#updateDiv' + devicesIndex).hide();
 	   $('#deleteId' + devicesIndex).hide();
-	   
-		
+	   	
 	   // register click event listeners on li and buttons/input
 	   $('#device' + devicesIndex).click(showUpdateDeviceForm);
 	   $('#updateDevice' + devicesIndex).click(sendReqForUpdateDeviceId);
@@ -106,6 +106,19 @@ function accountInfoSuccess(data, textSatus, jqXHR) {
 
 	   devicesIndex++;
    }
+}
+// Show add update threshold form and hide the update threshold button (really a link)
+function showUpdateThresholdForm() {
+   $("#threshold").val("");           // Clear the input for the new threshold
+   $("#updateUV").hide();             // Hide the update link
+   $("#updateThresholdForm").slideDown();  // Show the update threshold form
+}
+
+// Hides the update threshold form and shows the update threshold link
+function hideUpdateThresholdForm() {
+   $("#updateUV").show();  // Hide the add device link
+   $("#updateThresholdForm").slideUp();  // Show the add device form
+   $("#error").hide();
 }
 
 function showUpdateDeviceForm() {
@@ -136,7 +149,7 @@ function hideUpdateDeviceForm() {
 	$("#updateDiv" + deviceNum).slideUp();
 	
 	// re-enable click event listener to deviceId div
-	// FIXME: Assuming less than 100 devices
+	// FIXME: Assuming less than 10 devices
 	for(var i = 0; i < 10; i++) {
 		$('#device' + i).on("click", showUpdateDeviceForm);
 	}	
@@ -155,6 +168,35 @@ function accountInfoError(jqXHR, textStatus, errorThrown) {
      $("#error").show();
    } 
 }
+function sendReqForUpdateUVThreshold() {
+   var newThreshold = $("#threshold").val();
+   var input = parseInt(newThreshold, 10);
+   var re = /^([0-9]|10)$/;	
+	
+	if(!re.test(newThreshold.toString())) {
+		$("#error").html("Please match the threshold criteria and try again.")
+		$("#error").show();
+		return;
+	}
+    $.ajax({
+        url: '/users/update/uv-threshold',
+        type: 'PUT',
+        headers: { 'x-auth': window.localStorage.getItem("authToken") },   
+        data: { uvThreshold: newThreshold }, 
+        responseType: 'json',
+        success: function (data, textStatus, jqXHR) {
+	       // update threshold on website
+		   $("#uvThreshold").html(data["uvThreshold"]);
+		   location.reload(); // Is location.reload() neccesary?	
+           hideUpdateThresholdForm();
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+            var response = JSON.parse(jqXHR.responseText);
+            $("#error").html("Error: " + response.message);
+            $("#error").show();
+        }
+    }); 
+}
 
 // Registers the specified device with the server.
 function registerDevice() {
@@ -171,6 +213,7 @@ function registerDevice() {
 		   
 		   //TODO: make a new device clickable without refreshing the page
 			$('#device0').click(showUpdateDeviceForm);
+			location.reload();
 		   
            hideAddDeviceForm();
         },
@@ -206,10 +249,16 @@ $(function() {
    else {
       sendReqForAccountInfo();
    }
-   
+
 	// Register event listeners
-   $("#addDevice").click(showAddDeviceForm);
-   $("#registerDevice").click(registerDevice);   
-   $("#cancel").click(hideAddDeviceForm);   
+	$("#addDevice").click(showAddDeviceForm);
+	$("#cancel").click(hideAddDeviceForm);   
+
+	$("#updateUV").click(showUpdateThresholdForm);
+	$("#cancelThreshold").click(hideUpdateThresholdForm);
+	$("#updateThreshold").click(sendReqForUpdateUVThreshold);
+	hideUpdateThresholdForm();
+
+	$("#registerDevice").click(registerDevice);   
 });
 
