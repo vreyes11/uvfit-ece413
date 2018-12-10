@@ -35,11 +35,32 @@ function authenticateAuthToken(req) {
 // NOTE: Device must POST data to this endpoint.
 // POST: Adds an activity to the database
 // Authentication: APIKEY. The device reporting must have a valid APIKEY
+//
+// Maximum length of data is: 120
 router.post("/add", function(req, res) {
     var responseJson = {
         success : false,
         message : "",
     };
+	
+	// process data here and build final data to add to activity db
+	/*var totalData = req.body.data;
+	var finalData = {}; // will contain data that will go into db
+	for(var i = 0; i < totalData.size(); i++) {
+		var singleLat = totalData[i].latitude;
+		var singleLong = totalData[i].longitude;
+		finalData.latitude += singleLat; // look up how to push data to json object
+		// ..
+
+		// if last data point, get non-variable data
+		if( i == totalData.size() - 1 ) {
+			finalData.deviceID = totalData[i].deviceId;
+			finalData.apikey = totalData[i].apikey;
+			finalData.speed = totalData[i].speed;
+			finalData.time = totalData[i].time; // need to check units and maker sure they are in mins
+			finalData.uv = totalData[i].uv; // not sure about this one
+		} 
+	}*/
 
     // Ensure the POST data include required properties    
     
@@ -96,7 +117,6 @@ router.post("/add", function(req, res) {
 	} else {
 		activityTypeString = "biking";
 	}
-
 
     // Find the device and verify the apikey                                           
     Device.findOne({ deviceId: req.body.deviceId }, function(err, device) {

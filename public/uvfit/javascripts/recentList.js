@@ -108,10 +108,12 @@ function displayActivitiesList() {
 			   selectActivity.classList.add("activity" + (index + 1));
 			   console.log("in displayActivitesList(), class added is " + selectActivity.classList);
 			   selectActivity.textContent = "View this activity in detail.";
+			   // add click event listener to show in-depth view for each activity
+			   selectActivity.addEventListener("click", showActivitySummary);
 			   cardAction.appendChild(selectActivity);
 
 			   card.appendChild(contentDiv);	
-			   card.appendChild(cardAction);	
+			   card.appendChild(cardAction);
 
 				//debug
 				console.log("Latitude: " + this.response.activities[index].latitude);
@@ -132,6 +134,10 @@ function displayActivitiesList() {
 		// the date param is wrong
 		console.log("The day provided is greater than 30 or less than 1.");
     }    
+}
+
+function showActivitySummary() {
+	console.log(this);
 }
 
 // Sets up the handlers and calls

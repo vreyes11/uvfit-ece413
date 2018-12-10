@@ -211,7 +211,6 @@ function registerDevice() {
            $("#addDeviceForm").before("<li class='collection-item' id='device0'>ID: " +
            $("#deviceId").val() + ", APIKEY: " + data["apikey"] + "</li>")
 		   
-		   //TODO: make a new device clickable without refreshing the page
 			$('#device0').click(showUpdateDeviceForm);
 			location.reload();
 		   
@@ -224,6 +223,24 @@ function registerDevice() {
         }
     }); 
 }
+
+// Sends UV Index Threshold to device
+/*function sendUVThreshold() {
+	var uvThreshold = $("#uvThreshold").val();
+	console.log("uvThreshold is " + uvThreshold);
+	var deviceID = 2f0034000f47363336383437;
+	var accessToken = 1231; // CHANGE accessToken here.
+
+    $.ajax({
+        url: '/v1/devices/{DEVICE_ID}/{FUNCTION}',
+        type: 'POST',
+        data:'access_token='+ accessToken +'&args='+ uvThreshold,
+		responseType: 'json',
+        success: function (data) {
+        	console.log("POST succesful, UV threshold sent to device. " + data);
+		}
+    }); 
+}*/
 
 // Show add device form and hide the add device button (really a link)
 function showAddDeviceForm() {

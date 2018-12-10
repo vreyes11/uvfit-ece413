@@ -34,3 +34,9 @@ Third Party APIs and Libraries
 DONE -	You may use additional third party APIs.
 DONE - You may use open source JavaScript libraries.
 DONE -	You may use open source CSS libraries.
+
+THINGS TO LOOK UP:
+1. How to send UV Threshold to device, google controlling led photon by POST/GET
+
+2. JSON datapoints array with each datapoint having the same data format as in checkin.
+
