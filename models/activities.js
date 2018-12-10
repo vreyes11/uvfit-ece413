@@ -2,10 +2,12 @@ var db = require("../db");
 
 // Define the schema
 var activities = new db.Schema({
-    loc:           { type: [Number], index: '2dsphere'},
-    uvExposure: Number,
-    speed: Number,
-    submitTime: { type: Date, default: Date.now },
+	activityID: { type: Number, default: 1 },
+	longitude:  { type: [Number], index: '2dsphere'},
+	latitude:   { type: [Number], index: '2dsphere'},
+    uvExposure: [Number],
+    speed: [Number],
+    submitTime: { type: [Date], default: Date.now },
 	duration: Number,
 	activityType: { type: String, default: "walking" }
 		// supported activity types are: walking, running, and biking.

@@ -106,6 +106,8 @@ function accountInfoSuccess(data, textSatus, jqXHR) {
 
 	   devicesIndex++;
    }
+    // done after account information GET
+	sendUVThreshold(); // sends to device
 }
 // Show add update threshold form and hide the update threshold button (really a link)
 function showUpdateThresholdForm() {
@@ -189,6 +191,7 @@ function sendReqForUpdateUVThreshold() {
 		   $("#uvThreshold").html(data["uvThreshold"]);
 		   location.reload(); // Is location.reload() neccesary?	
            hideUpdateThresholdForm();
+		   sendUVThreshold(); // sends to device
         },
         error: function(jqXHR, textStatus, errorThrown) {
             var response = JSON.parse(jqXHR.responseText);
@@ -225,22 +228,30 @@ function registerDevice() {
 }
 
 // Sends UV Index Threshold to device
-/*function sendUVThreshold() {
-	var uvThreshold = $("#uvThreshold").val();
+function sendUVThreshold() {
+	var uvThreshold = $("#uvThreshold").html();
 	console.log("uvThreshold is " + uvThreshold);
-	var deviceID = 2f0034000f47363336383437;
-	var accessToken = 1231; // CHANGE accessToken here.
+	var deviceID = "2f0034000f47363336383437";
+	var accessToken = "377a0c9a008dbe94af700e780b313b18ec335f86"; // CHANGE accessToken here.
+	var functionName = "setUVThresh";
 
     $.ajax({
-        url: '/v1/devices/{DEVICE_ID}/{FUNCTION}',
+		url: 'https://api.particle.io/v1/devices/' + deviceID +'/' + functionName +
+		'?access_token=' + accessToken + '&args=' + uvThreshold,
         type: 'POST',
-        data:'access_token='+ accessToken +'&args='+ uvThreshold,
+        //data:'?access_token=' + accessToken + '&args='+ uvThreshold,
 		responseType: 'json',
         success: function (data) {
         	console.log("POST succesful, UV threshold sent to device. " + data);
-		}
+		}, 
+        error: function(jqXHR, textStatus, errorThrown) {
+            var response = JSON.parse(jqXHR.responseText);
+			console.log("ERROR: sendUVThreshold() in status.js");
+			console.log(response);
+        }
+
     }); 
-}*/
+}
 
 // Show add device form and hide the add device button (really a link)
 function showAddDeviceForm() {

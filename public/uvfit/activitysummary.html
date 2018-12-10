@@ -2,18 +2,19 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>UVFit - Summary</title>
+    <title>UVFit - Activity Summary</title>
 
 	 <!-- Import Google Icon Font -->
 	 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 	 <!-- Import materialize.css -->
 	 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/css/materialize.min.css" media="screen,projection">	
+	 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 	 <script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/js/materialize.min.js"></script>
-   
+	 <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/js/materialize.min.js"></script>
+  	 <script defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBXSKiPBfDZdo-WlcApLbBwviAk1Dv6ef0&callback=initRecent"></script>
+
     <link href="stylesheets/uvfit.css" rel="stylesheet">
-    <script src="javascripts/signout.js" defer></script>
-	<script src="javascripts/recentsummary.js"></script>
+    <script src="javascripts/activitysummary.js" defer></script>
         
     <!--Let browser know website is optimized for mobile-->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -46,17 +47,43 @@
 			  <div class="card">
 				  <div class="card-image">
 					  <img src="images/sunset.jpeg">
-					  <span class="card-title">Summary</span>
+					  <span class="card-title">Activity #1 Summary</span>
 				  </div>
 				  <div class="card-content">
 				  	<ul class="collection">
-						<li class="collection-item">Total activity duration: <span id="totalDuration"></span> minutes</li>
-						<li class="collection-item">Total UV exposure: <span id="totalUV"></span></li>
-						<li class="collection-item">Total calories burned: <span id="totalCals"> calories</span></li>
+						<li class="collection-item">Activity date: <span id="activityDate"></span></li>
+						<li class="collection-item">Duration: <span id="totalDuration"></span> minutes</li>
+						<li class="collection-item">UV exposure: <span id="totalUV"></span></li>
+						<li class="collection-item">Calories burned: <span id="totalCals"> calories</span></li>
+						<li class="collection-item">Activity type: <span id="activityType"></span></li>
+						<li class="collection-item"><a href="#" class="red-text text-darken-4" id="updateActivityType">Update Type</a></li>
+						<li class="collection-item" id="updateActivityTypeForm">
+							<form action="#">
+								<p>
+								<i class="material-icons">directions_walk</i>
+								<input class="with-gap" name="type" type="radio" id="type1" checked />
+								<label for="type1">Walking</label>
+								</p>
+								<p>
+								<i class="material-icons">directions_run</i>
+								<input class="with-gap" name="type" type="radio" id="type2" />
+								<label for="type2">Running</label>
+								</p>
+								<p>
+								<i class="material-icons">directions_bike</i>
+								<input class="with-gap" name="type" type="radio" id="type3"  />
+								<label for="type3">Biking</label>
+								</p>
+							</form>
+
+							<button id="updateType" class="waves-effect waves-light red  darken-2 btn">Update</button> 
+							<button id="cancelType" class="waves-effect waves-light red darken-2 btn">Cancel</button> 
+						</li>
 					</ul>
 					<div class="red-text" id="errorDiv"></div>
 				  </div>
 			  </div>
+			  		<div id="map"></div>
 		  </div>
 	  </div>
   </body>

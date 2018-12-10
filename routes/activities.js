@@ -32,41 +32,23 @@ function authenticateAuthToken(req) {
     }
 }
 
-// NOTE: Device must POST data to this endpoint.
 // POST: Adds an activity to the database
 // Authentication: APIKEY. The device reporting must have a valid APIKEY
-//
-// Maximum length of data is: 120
-router.post("/add", function(req, res) {
+// recieves deviceID, APIKey, and submitTime, and initial Latititude and Longitude
+router.post("/init", function(req, res) {
     var responseJson = {
         success : false,
         message : "",
     };
 	
-	// process data here and build final data to add to activity db
-	/*var totalData = req.body.data;
-	var finalData = {}; // will contain data that will go into db
-	for(var i = 0; i < totalData.size(); i++) {
-		var singleLat = totalData[i].latitude;
-		var singleLong = totalData[i].longitude;
-		finalData.latitude += singleLat; // look up how to push data to json object
-		// ..
-
-		// if last data point, get non-variable data
-		if( i == totalData.size() - 1 ) {
-			finalData.deviceID = totalData[i].deviceId;
-			finalData.apikey = totalData[i].apikey;
-			finalData.speed = totalData[i].speed;
-			finalData.time = totalData[i].time; // need to check units and maker sure they are in mins
-			finalData.uv = totalData[i].uv; // not sure about this one
-		} 
-	}*/
-
     // Ensure the POST data include required properties    
     
-    // TODO: Make sure device is sending the right body parameters,
-    // deviceId, apikey, longitude, latitude, time, uv, speed
     //
+	if( !req.body.hasOwnProperty("activityID") ) {
+        responseJson.message = "Request missing activityID parameter.";
+        return res.status(201).send(JSON.stringify(responseJson));
+    }
+
     if( !req.body.hasOwnProperty("deviceId") ) {
         responseJson.message = "Request missing deviceId parameter.";
         return res.status(201).send(JSON.stringify(responseJson));
@@ -91,22 +73,96 @@ router.post("/add", function(req, res) {
         responseJson.message = "Request missing time parameter.";
         return res.status(201).send(JSON.stringify(responseJson));
     }
+	
+
+    // Find the device and verify the apikey                                           
+    Device.findOne({ deviceId: req.body.deviceId }, function(err, device) {
+        if (device === null) {
+            responseJson.message = "Device ID " + req.body.deviceId + " not registered.";
+            return res.status(201).send(JSON.stringify(responseJson));
+        }
+        
+        if (device.apikey != req.body.apikey) {
+            responseJson.message = "Invalid apikey for device ID " + req.body.deviceId + ".";
+            return res.status(201).send(JSON.stringify(responseJson));
+        }
+               
+             //////////////////////////////////////////////////////////////////////
+             // New activity
+             /////////////////////////////
+                 // Create a new activity and save the activity to the database
+                 var activity = new Activity({
+					 activityID: req.body.activityID,
+                     longitude:  req.body.longitude,
+                     latitude:   req.body.latitude,
+                     submitTime: Date.now(),
+                 });				
+                 responseJson.message = "New activity recorded.";
+            // }                
+
+             // Save the activity data. 
+             activity.save(function(err, newActivity) {
+                 if (err) {
+                     responseJson.status = "ERROR";
+                     responseJson.message = "Error saving data in db." + err;
+                     return res.status(201).send(JSON.stringify(responseJson));
+                 }
+
+                 responseJson.success = true;
+                 return res.status(201).send(JSON.stringify(responseJson));
+           // });
+         });  
+    });
+});
+
+// POST: Updates data to an activity to the database
+// Authentication: APIKEY. The device reporting must have a valid APIKEY
+
+// TODO: Device must send the duration in minutes on the last data point HERE.
+router.post("/add", function(req, res) {
+    var responseJson = {
+        success : false,
+        message : "",
+    };
     
-    if( !req.body.hasOwnProperty("uv") ) {
-        responseJson.message = "Request missing uv parameter.";
-        return res.status(201).send(JSON.stringify(responseJson));
-    }
-    
-    if( !req.body.hasOwnProperty("speed") ) {
-        responseJson.message = "Request missing speed parameter.";
-        return res.status(201).send(JSON.stringify(responseJson));
-    }
-    
-	if( !req.body.hasOwnProperty("duration") ) {
-        responseJson.message = "Request missing duration parameter.";
+	if( !req.body.hasOwnProperty("activityID") ) {
+        responseJson.message = "Request missing activityID parameter.";
         return res.status(201).send(JSON.stringify(responseJson));
     }
 	
+    if( !req.body.hasOwnProperty("deviceId") ) {
+        responseJson.message = "Request missing deviceId parameter.";
+        return res.status(201).send(JSON.stringify(responseJson));
+    }
+    
+    if( !req.body.hasOwnProperty("apikey") ) {
+        responseJson.message = "Request missing apikey parameter.";
+        return res.status(201).send(JSON.stringify(responseJson));
+    }
+    
+    if( !req.body.hasOwnProperty("longitude") ) {
+        responseJson.message = "Request missing longitude parameter.";
+        return res.status(201).send(JSON.stringify(responseJson));
+    }
+    
+    if( !req.body.hasOwnProperty("latitude") ) {
+        responseJson.message = "Request missing latitude parameter.";
+        return res.status(201).send(JSON.stringify(responseJson));
+    }
+    
+    if( !req.body.hasOwnProperty("time") ) {
+        responseJson.message = "Request missing time parameter.";
+        return res.status(201).send(JSON.stringify(responseJson));
+    }
+    if( !req.body.hasOwnProperty("uv") ) {
+        responseJson.message = "Request UV Exposure parameter.";
+        return res.status(201).send(JSON.stringify(responseJson));
+    }
+    if( !req.body.hasOwnProperty("speed") ) {
+        responseJson.message = "Request speed parameter.";
+        return res.status(201).send(JSON.stringify(responseJson));
+    }
+    
 	// assign activityType based on the speed parameter
 	// change the range above
 	var activityTypeString = "";
@@ -129,55 +185,47 @@ router.post("/add", function(req, res) {
             responseJson.message = "Invalid apikey for device ID " + req.body.deviceId + ".";
             return res.status(201).send(JSON.stringify(responseJson));
         }
-               
-        // Check to see if an activity was already recoreded within 10 meters (or thereabouts, this needs to be verified)
-        /*var findActivityQuery = Activity.findOne({
-             'submitTime': { $eq: new Date(myDate.toISOString())}
-         });*/
+				
+		// Update activity arrays here.
+		if(!req.body.duration) {
+			Activity.findOneAndUpdate({ activityID: req.body.activityID },
+				{ "$set": { "activityType": activityTypeString } },
+				{ "$push": { "longitude": req.body.longitude, "latitude": req.body.latitude, "uvExposure": req.body.uv, "speed": req.body.speed, "submitTime": req.body.time}}).exec(function(err, activity) {
+					if(err) {
+						console.log(err);
+						responseJson.message = err;
+						responseJson.success = false;
+						res.status(500).send(responseJson);
+					} else {
+						responseJson.message = "Activity successfuly updated.";
+						responseJson.success = true;
+						res.status(200).send(responseJson);
+					}
 
-         // Execute the query     
-         //findActivityQuery.exec(function (err, activity) {
-           /* if (err) {
-               console.log(err);
-               responseJson.message = "Error accessing db.";
-               return res.status(201).send(JSON.stringify(responseJson));
-             }*/
-             
-             // Activity was found, update last reported time
-             /*if (activity) {
-                 activity.lastReported = Date.now();
-                 responseJson.message = "Activity date updated.";
-             }*/
-             //////////////////////////////////////////////////////////////////////
-             // New activity
-             /////////////////////////////
-             //else {
-                 // Create a new activity and save the activity to the database
-                 var activity = new Activity({
-                     loc: [req.body.longitude, req.body.latitude],
-                     uvExposure: req.body.uv,
-                     speed: req.body.speed,
-                     submitTime: Date.now(),
-					 duration: req.body.duration,
-					 activityType: activityTypeString
-					 // NOTE: default activity type, must be updated
-                 });						 // in activityView.html
-                 responseJson.message = "New activity recorded.";
-            // }                
+				});
+			
+		} 
+		else {
+			// if duration is provided, then the last data point has been sent
+			Activity.findOneAndUpdate({ activityID: req.body.activityID },
+				{ "$set": { "activityType": activityTypeString, "duration": req.body.duration  }},
+				{ "$push": { "longitude": req.body.longitude, "latitude": req.body.latitude, "uvExposure": req.body.uv, "speed": req.body.speed, "submitTime": req.body.time}}).exec(function(err, activity) {
+					if(err) {
+						console.log(err);
+						responseJson.message = err;
+						responseJson.success = false;
+						res.status(500).send(responseJson);
+					} else {
+						responseJson.message = "Activity successfuly updated.";
+						responseJson.success = true;
+						res.status(200).send(responseJson);
+					}
 
-             // Save the activity data. 
-             activity.save(function(err, newActivity) {
-                 if (err) {
-                     responseJson.status = "ERROR";
-                     responseJson.message = "Error saving data in db." + err;
-                     return res.status(201).send(JSON.stringify(responseJson));
-                 }
+				});
 
-                 responseJson.success = true;
-                 return res.status(201).send(JSON.stringify(responseJson));
-           // });
-         });  
-    });
+		}
+	});
+
 });
 
 // GET: Returns all activities first submitted in the previous specified number of days
@@ -228,11 +276,11 @@ router.get("/recent/:days", function(req, res) {
                 // Add activity data to the response's asctivities array
                 numRecentActivities++;
                 responseJson.activities.push({
-                    latitude: activity.loc[1],
-                    longitude: activity.loc[0],
-                    uv: activity.uvExposure,
-                    speed: activity.speed,
-                    date: activity.submitTime,
+                    latitude: activity.latitude[0],
+                    longitude: activity.longitude[0],
+                    uv: activity.uvExposure, // send whole uv array
+                    speed: activity.speed, // send whole speed array
+                    date: activity.submitTime[0],
 					duration: activity.duration,
 					activityType: activity.activityType
                 });
@@ -278,14 +326,13 @@ router.get("/get/:date", function(req, res) {
 			responseJson.message = "Activity found with parameter date = " + date;
 			for(var activity of allActivities) {
 				responseJson.activities.push({ 
-                    latitude: activity.loc[1],
-                    longitude: activity.loc[0],
-                    uv: activity.uvExposure,
-                    speed: activity.speed,
-                    date: activity.submitTime,
+                    latitude: activity.latitude, // map coordinates, send the whole array
+                    longitude: activity.longitude, // send whole array
+                    uv: activity.uvExposure, // same
+                    speed: activity.speed,  // same
+                    date: activity.submitTime, // same 
 					duration: activity.duration,
 					activityType: activity.activityType
-
 				});
 			}
 		}
@@ -307,6 +354,8 @@ router.put("/activity-type/:date", function(req, res) {
 		responseJson.success = false;
 		return res.status(400).json(responseJson);
 	}
+
+	console.log("req.body.activityType = " + req.body.activityType);
     
 	if (authenticateRecentEndpoint) {
         decodedToken = authenticateAuthToken(req);

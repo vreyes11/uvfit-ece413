@@ -18,20 +18,10 @@ function displayActivitiesList() {
     document.getElementById("main").style.display = "block";
    
    if (this.status === 200) {
-	   var latitude = 0.0;
-	   var longitude = 0.0;
-       var uv = 0;
-       var speed = 0;
-	   var date = "00-00-00"; 
-	   var duration = 0;
-	   var activityType = "";
        var activityReport = "No activities have been reported in the last 30 days.";
    
 	   // If there's at least one activity, print data
 	   if (this.response.activities.length > 0) {
-		   // TODO: Are these actually neccesary?
-	      var latitude = this.response.activities[this.response.activities.length-1].latitude;
-	      var longitude = this.response.activities[this.response.activities.length-1].longitude;
 		  var date = this.response.activities.date;
           
 	      // Report number of activities
@@ -40,7 +30,15 @@ function displayActivitiesList() {
 		                  this.response.activities[this.response.activities.length-1].date;
 
            // Get each activity from the response and post its data to div of id #activitiesList
-           for (let index = 0; index < this.response.activities.length; index++) {
+           for (let i = 0; i < this.response.activities.length; i++) {
+			   // calculate average speed 
+			   var sum = 0;
+			   for(let j = 0; j < this.response.activities[i].speed.length; j++ ) {
+					sum += parseint(this.response.activities[i].speed[j], 10);	
+			   }
+			   console.log(sum);
+			   var avgspeed = sum / this.response.activities[i].speed.length; // use to calculate calories
+
 			   // Template
 			   // <div class="card-content white-text">
 			   //<span class="card-title">Card Title</span>
@@ -64,20 +62,19 @@ function displayActivitiesList() {
 			   contentDiv.classList.add("white-text");
 			   var entry = document.createElement("p");
 
-			   var activityType = this.response.activities[index].activityType;
-			   var duration = this.response.activities[index].duration;
-			   var speed = this.response.activities[index].speed;
+			   var activityType = this.response.activities[i].activityType;
+			   var duration = parseInt(this.response.activities[i].duration, 10);
 			   entry.textContent = "Activity Type: "+ activityType + "\n";
-			   entry.textContent += "Date: " + this.response.activities[index].date + "\n";
+			   entry.textContent += "Date: " + this.response.activities[i].date + "\n";
 			   entry.textContent += "Duration: " + duration + " minutes" + "\n";
-			   entry.textContent += "Latitude: " + this.response.activities[index].latitude + "\n";
-			   entry.textContent += "Longitutde: " + this.response.activities[index].longitude + "\n";
-			   entry.textContent += "UV Exposure: " + this.response.activities[index].uv + "\n";
-			   entry.textContent += "Speed: " + speed + " m/s"  + "\n";
+			   entry.textContent += "Starting latitude: " + this.response.activities[i].latitude[0] + "\n";
+			   entry.textContent += "Starting longitutde: " + this.response.activities[i].longitude[0] + "\n";
+			   entry.textContent += "UV Exposure: " + this.response.activities[i].uv[0] + "\n";
+			   entry.textContent += " Average Speed: " + avgSpeed + " m/s"  + "\n";
 
 			   // calculate calories burned
 			   var calsBurned = 0;
-			   var kiloSpeed = this.response.activities[index].speed * 3.6;
+			   var kiloSpeed = this.response.activities[i].avgSpeed * 3.6;
 			   switch(activityType) {
 				   case "walking":
 					   // CB = [0.0215 x KPH3 - 0.1765 x KPH2 + 0.8710 x KPH + 1.4577] x WKG x T
@@ -86,7 +83,7 @@ function displayActivitiesList() {
 				   case "running":
 					   // Kcal/Min ~= respiratoryExchangeRatio * massKg * VO2 / 1000
 					   // VO2 = (0.2 * metersMin) + 3.5
-					   var VO2 = (0.2 * speed) + 3.5;
+					   var VO2 = (0.2 * avgSpeed) + 3.5;
 					   calsBurned = (4.86 * 68.038 * VO2) * duration;
 					   break;
 				   case "biking":
@@ -105,11 +102,12 @@ function displayActivitiesList() {
 			   var cardAction = document.createElement("div");
 			   cardAction.classList.add("card-action");
 			   var selectActivity = document.createElement("a");
-			   selectActivity.classList.add("activity" + (index + 1));
+			   selectActivity.classList.add("activity" + (i + 1));
 			   console.log("in displayActivitesList(), class added is " + selectActivity.classList);
 			   selectActivity.textContent = "View this activity in detail.";
 			   // add click event listener to show in-depth view for each activity
 			   selectActivity.addEventListener("click", showActivitySummary);
+			   $(selectActivity).data("date", date); // jquery to add data-date to each activity
 			   cardAction.appendChild(selectActivity);
 
 			   card.appendChild(contentDiv);	
@@ -136,8 +134,14 @@ function displayActivitiesList() {
     }    
 }
 
+// NOTE: uses jquery
 function showActivitySummary() {
 	console.log(this);
+    var activityDate = $(this).data('date');
+	console.log("data-date = " + activityDate);
+    if (activityDate) {
+        window.location = '/activitysummary.html?date=' + activityDate;
+    }	
 }
 
 // Sets up the handlers and calls
