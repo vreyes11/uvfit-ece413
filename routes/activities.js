@@ -59,7 +59,7 @@ router.post("/init", function(req, res) {
         return res.status(201).send(JSON.stringify(responseJson));
     }
     
-    if( !req.body.hasOwnProperty("longitude") ) {
+    /*if( !req.body.hasOwnProperty("longitude") ) {
         responseJson.message = "Request missing longitude parameter.";
         return res.status(201).send(JSON.stringify(responseJson));
     }
@@ -67,7 +67,7 @@ router.post("/init", function(req, res) {
     if( !req.body.hasOwnProperty("latitude") ) {
         responseJson.message = "Request missing latitude parameter.";
         return res.status(201).send(JSON.stringify(responseJson));
-    }
+    }*/
     
     if( !req.body.hasOwnProperty("time") ) {
         responseJson.message = "Request missing time parameter.";
@@ -93,8 +93,8 @@ router.post("/init", function(req, res) {
                  // Create a new activity and save the activity to the database
                  var activity = new Activity({
 					 activityID: req.body.activityID,
-                     longitude:  req.body.longitude,
-                     latitude:   req.body.latitude,
+                     //longitude:  req.body.longitude, // TODO: Not sure if this is neccesary for $push to work later on in /add
+                     //latitude:   req.body.latitude,
                      submitTime: Date.now(),
                  });				
                  responseJson.message = "New activity recorded.";

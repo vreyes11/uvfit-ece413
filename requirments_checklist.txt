@@ -7,20 +7,20 @@ DONE -	A user should be able to replace a device with a new device in their acco
 UVFit IoT Device
 DONE -	The user should use a button on the IoT device to start and stop activities. 
 DONE - 	The IoT device should use the onboard LEDs to indicate the activity status. 
-TEST -	During an activity, the IoT device should periodically record the GPS location, speed, and UV exposure, at least at a rate of once per second.
-TEST -	If the UV exposure during an activity exceeds a user defined threshold (the threshold will be set in the web application), an alert should be provided on the IoT device.
-TEST -	After an activity is complete, the IoT device should transmit the activity data to the server.
-TEST -	If the WiFi connection is not available, the IoT device should locally store the data for up to 24 hours and submit the data when later connected.
+DONE -	During an activity, the IoT device should periodically record the GPS location, speed, and UV exposure, at least at a rate of once per second.
+DONE -	If the UV exposure during an activity exceeds a user defined threshold (the threshold will be set in the web application), an alert should be provided on the IoT device.
+DONE -	After an activity is complete, the IoT device should transmit the activity data to the server.
+DONE -	If the WiFi connection is not available, the IoT device should locally store the data for up to 24 hours and submit the data when later connected.
 DONE -	The server should require an APIKEY from the IoT device for posting activity data.
 
 Web Application
 	The web application should support the following views (each of which should be visually appealing): 
-TEST -	A summary view showing the user’s total activity duration, total calories burned, and total UV exposure in the past 7 days.
-TEST -	An activities list view that lists all fitness activities with data summarizing each activity (e.g., date of activity, duration of activity, calories burned, UV exposure).
-TEST -	An activity view for a selected activity that will display the activity date, duration, UV exposure, activity type, calories burned, and plot the user’s route for the activity on a map.
-	In the activity view, the web application should allow a user to change the activity type. Activity types should minimally support walking, running, and biking.
-TEST -	The calculation of calories burned should be based on the activity type for each activity. 
-TEST -	The web application should allow the user to define a UV threshold that defines the total UV exposure beyond which the IoT device should alert the user during an activity.
+DONE -	A summary view showing the user’s total activity duration, total calories burned, and total UV exposure in the past 7 days.
+DONE -	An activities list view that lists all fitness activities with data summarizing each activity (e.g., date of activity, duration of activity, calories burned, UV exposure).
+NO PLOT -	An activity view for a selected activity that will display the activity date, duration, UV exposure, activity type, calories burned, and plot the user’s route for the activity on a map.
+DONE -	In the activity view, the web application should allow a user to change the activity type. Activity types should minimally support walking, running, and biking.
+DONE -	The calculation of calories burned should be based on the activity type for each activity. 
+DONE -	The web application should allow the user to define a UV threshold that defines the total UV exposure beyond which the IoT device should alert the user during an activity.
 DONE -	The web application should have a navigation menu.
 DONE -	The web application should use responsive design to be viewable on desktops, tablets, and smartphones.
 
@@ -41,6 +41,6 @@ c
 2. JSON datapoints array with each datapoint having the same data format as in checkin.
 
 
-$ curl https://api.particle.io/v1/devices/2f0034000f47363336383437/setUVThresh \
+$ curl https://api.particle.io/v1/devices/2f0034000f47363336383437/setUV \
 	-d access_token=377a0c9a008dbe94af700e780b313b18ec335f86 \
-	-d "args=5"
+	-d "setUV=33"
