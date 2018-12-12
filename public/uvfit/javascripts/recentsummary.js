@@ -16,7 +16,7 @@ function getRecentActivities() {
 function displayActivitySummary() {
     document.getElementById("main").style.display = "block";
 	// debug
-	console.log("response: " + this.response.activities);
+	console.log(this.response.activities);
 	console.log("status: " + this.status);
    
    if (this.status === 200) {
@@ -28,25 +28,40 @@ function displayActivitySummary() {
 	   if (this.response.activities.length > 0) {
            // Get each activity from the response and post its data to relevant span in summaryview.html
            for (let index = 0; index < this.response.activities.length; index++) {
+			   console.log("activityID = " + this.response.activities[index].activityID);	
+			   
+			   // calculate average speed 
+			   var sum = 0;
+			   for(let j = 0; j < this.response.activities[index].speed.length; j++ ) {
+				   sum += parseInt(this.response.activities[index].speed[j], 10);
+			   }
+			   console.log("sum of speeds = " + sum);
+			   var avgSpeed = sum / this.response.activities[index].speed.length; // use to calculate calories
+
 			   // get duration and add to totalDuration
-			   var duration = this.response.activities[index].duration;
+			   var duration = 0
+			   if(this.response.activities[index].duration == null) {
+				   console.log("duration in activity of index " + index + " is null.");
+			   } else {
+				   duration = this.response.activities[index].duration;
+			   }
 			   totalDuration += duration;	
 
 			   // calculate calories burned and add to totalCals
 			   var calsBurned = 0;
-			   var kiloSpeed = this.response.activities[index].speed * 3.6;
-			   switch(activityType) {
-				   case "walking":
+			   var kiloSpeed = avgSpeed * 3.6;
+			   switch(this.response.activities[index].activityType) {
+				   case "Walking":
 					   // CB = [0.0215 x KPH3 - 0.1765 x KPH2 + 0.8710 x KPH + 1.4577] x WKG x T
 					   calsBurned = (0.0215 * (kiloSpeed)^3 - 0.1765 * (kiloSpeed)^2 + 0.8170 * kiloSpeed + 1.4577) * (68.038) * (duration / 60);
 					   break;
-				   case "running":
+				   case "Running":
 					   // Kcal/Min ~= respiratoryExchangeRatio * massKg * VO2 / 1000
 					   // VO2 = (0.2 * metersMin) + 3.5
 					   var VO2 = (0.2 * speed) + 3.5;
 					   calsBurned = (4.86 * 68.038 * VO2) * duration;
 					   break;
-				   case "biking":
+				   case "Biking":
 					   // calsBurned = WKG * 6 * 60/duration
 					   calsBurned = ((68.038) * 6 * 60) / duration;
 					   break;
@@ -57,7 +72,11 @@ function displayActivitySummary() {
 			   totalCals += calsBurned;
 
 			   // get UV exposure and add to totalUV
-			   totalUV += this.response,activities[index].uv;
+			   if(this.response.activities[index].uv == null) {
+				   console.log("UV in activity of index " + index + " is null.");
+			   } else {
+				   totalUV += parseInt(this.response.activities[index].uv, 10);
+			   }
            }
 	   }
 	   	 // display total counts in respective spans

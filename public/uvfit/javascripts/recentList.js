@@ -6,7 +6,7 @@ function getActivitiesList() {
     var xhr = new XMLHttpRequest();
     xhr.addEventListener("load", displayActivitiesList);
     xhr.responseType = "json";   
-    xhr.open("GET", "/activities/recent/30"); // should get all activities
+    xhr.open("GET", "/activities/all"); // should get all activities
     xhr.setRequestHeader("x-auth", token);
     xhr.send();
 }
@@ -18,7 +18,7 @@ function displayActivitiesList() {
     document.getElementById("main").style.display = "block";
    
    if (this.status === 200) {
-       var activityReport = "No activities have been reported in the last 30 days.";
+       var activityReport = "No activities have been reported.";
    
 	   // If there's at least one activity, print data
 	   if (this.response.activities.length > 0) {
@@ -26,7 +26,7 @@ function displayActivitiesList() {
           
 	      // Report number of activities
 	      activityReport = this.response.activities.length +
-		                  " activites have been uploaded in the last 30 days. The most recent activity  was " +
+		                  " activites have been uploaded. The most recent activity  was " +
 		                  this.response.activities[this.response.activities.length-1].date;
 
            // Get each activity from the response and post its data to div of id #activitiesList
@@ -34,10 +34,10 @@ function displayActivitiesList() {
 			   // calculate average speed 
 			   var sum = 0;
 			   for(let j = 0; j < this.response.activities[i].speed.length; j++ ) {
-					sum += parseint(this.response.activities[i].speed[j], 10);	
+					sum += parseInt(this.response.activities[i].speed[j], 10);	
 			   }
 			   console.log(sum);
-			   var avgspeed = sum / this.response.activities[i].speed.length; // use to calculate calories
+			   var avgSpeed = sum / this.response.activities[i].speed.length; // use to calculate calories
 
 			   // Template
 			   // <div class="card-content white-text">
@@ -56,37 +56,47 @@ function displayActivitiesList() {
 			   card.classList.add("darken-1");
 			   var title = document.createElement("span");
 			   title.classList.add("card-title");
-			   title.textContent = "Activity #" + (index + 1);
+			   var activityID = parseInt(this.response.activities[i].activityID, 10);
+			   title.textContent = "Activity #" + activityID;
 			   var contentDiv = document.createElement("div");
 			   contentDiv.classList.add("card-content");                
 			   contentDiv.classList.add("white-text");
 			   var entry = document.createElement("p");
 
 			   var activityType = this.response.activities[i].activityType;
-			   var duration = parseInt(this.response.activities[i].duration, 10);
-			   entry.textContent = "Activity Type: "+ activityType + "\n";
-			   entry.textContent += "Date: " + this.response.activities[i].date + "\n";
-			   entry.textContent += "Duration: " + duration + " minutes" + "\n";
-			   entry.textContent += "Starting latitude: " + this.response.activities[i].latitude[0] + "\n";
-			   entry.textContent += "Starting longitutde: " + this.response.activities[i].longitude[0] + "\n";
-			   entry.textContent += "UV Exposure: " + this.response.activities[i].uv[0] + "\n";
-			   entry.textContent += " Average Speed: " + avgSpeed + " m/s"  + "\n";
+			   var duration = 0;
+			   if(this.response.activities[i].duration != null) {
+				   duration = parseInt(this.response.activities[i].duration, 10);
+			   }
+			   entry.innerHTML = "Activity Type: "+ activityType + "<br>";
+			   entry.innerHTML += "Date: " + this.response.activities[i].date + "<br>";
+			   entry.innerHTML += "Duration: " + duration + " seconds" + "<br>";
+			
+			   if( this.response.activities[i].loc != null ) {
+				   entry.innerHTML += "Starting latitude: " + this.response.activities[i].loc[1] + "<br>";
+				   entry.innerHTML += "Starting longitude: " + this.response.activities[i].loc[0] + "<br>";
+			   } else {
+				   entry.textContent += "Starting latitude: " + "missing lat" + "<br>";
+				   entry.textContent += "Starting longitude: " + "missing long" + "<br>";
+			   }
+			   entry.innerHTML += "UV Exposure: " + this.response.activities[i].uv[0] + "<br>";
+			   entry.innerHTML += " Average Speed: " + avgSpeed + " m/s"  + "<br>";
 
 			   // calculate calories burned
 			   var calsBurned = 0;
 			   var kiloSpeed = this.response.activities[i].avgSpeed * 3.6;
 			   switch(activityType) {
-				   case "walking":
+				   case "Walking":
 					   // CB = [0.0215 x KPH3 - 0.1765 x KPH2 + 0.8710 x KPH + 1.4577] x WKG x T
 					   calsBurned = (0.0215 * (kiloSpeed)^3 - 0.1765 * (kiloSpeed)^2 + 0.8170 * kiloSpeed + 1.4577) * (68.038) * duration/60;
 					   break;
-				   case "running":
+				   case "Running":
 					   // Kcal/Min ~= respiratoryExchangeRatio * massKg * VO2 / 1000
 					   // VO2 = (0.2 * metersMin) + 3.5
 					   var VO2 = (0.2 * avgSpeed) + 3.5;
 					   calsBurned = (4.86 * 68.038 * VO2) * duration;
 					   break;
-				   case "biking":
+				   case "Biking":
 					   // calsBurned = WKG * 6 * 60/duration
 					   calsBurned = ((68.038) * 6 * 60) / duration;
 					   break;
@@ -94,7 +104,7 @@ function displayActivitiesList() {
 					   calsBurned = 0;
 					   break;
 			   }
-			   entry.textContent += "Calories burned: " + calsBurned + " cals" + "\n";
+			   entry.innerHTML += "Calories burned: " + calsBurned + " cals" + "<br>";
 
 			   contentDiv.appendChild(title);
 			   contentDiv.appendChild(entry);
@@ -107,14 +117,14 @@ function displayActivitiesList() {
 			   selectActivity.textContent = "View this activity in detail.";
 			   // add click event listener to show in-depth view for each activity
 			   selectActivity.addEventListener("click", showActivitySummary);
-			   $(selectActivity).data("date", date); // jquery to add data-date to each activity
+			   $(selectActivity).data("id", activityID); // jquery to add data-id to each activity
 			   cardAction.appendChild(selectActivity);
 
 			   card.appendChild(contentDiv);	
 			   card.appendChild(cardAction);
 
 				//debug
-				console.log("Latitude: " + this.response.activities[index].latitude);
+				console.log("Latitude: " + this.response.activities[i].latitude);
 				console.log("Entry: " + entry.textContent);
 
                 // add nodes to #activitiesList div
@@ -129,18 +139,17 @@ function displayActivitiesList() {
         window.location = "signin.html";
     }
     else {
-		// the date param is wrong
-		console.log("The day provided is greater than 30 or less than 1.");
+		console.log("ERROR: 132:recentList.js");
     }    
 }
 
 // NOTE: uses jquery
 function showActivitySummary() {
 	console.log(this);
-    var activityDate = $(this).data('date');
-	console.log("data-date = " + activityDate);
-    if (activityDate) {
-        window.location = '/activitysummary.html?date=' + activityDate;
+    var activityID = $(this).data('id');
+	console.log("data-id = " + activityID);
+    if (activityID) {
+        window.location = '/uvfit/activitysummary.html?id=' + activityID;
     }	
 }
 

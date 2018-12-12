@@ -2,15 +2,15 @@ var map = null;
 
 function getSelectedActivity() {
 	var urlParams = new URLSearchParams(window.location.search); // may not work on all browsers
-	console.log(urlParams.get('date')); // assuming /activity-summary?date=date1
+	console.log(urlParams.get('id')); // assuming /activitysummary?id=id1
 
-   	var date = urlParams.get('date');
+   	var activityID = urlParams.get('id');
 
     var token = window.localStorage.getItem("authToken");
     var xhr = new XMLHttpRequest();
     xhr.addEventListener("load", displayActivitySummary);
     xhr.responseType = "json";   
-    xhr.open("GET", "/activities?date=" + date);
+    xhr.open("GET", "/activities/id?activityID=" + activityID);
     xhr.setRequestHeader("x-auth", token);
     xhr.send();
 }
@@ -36,12 +36,10 @@ function displayActivityType() {
 	location.reload();  // re-load page
 }
 
-// calculates and shows the user’s total activity duration, total calories burned,
-// and total UV exposure in the past 7 days.
 function displayActivitySummary() {
     document.getElementById("main").style.display = "block";
 	// debug
-	console.log("response: " + this.response.activities);
+	console.log(this.response.activities);
 	console.log("status: " + this.status);
    
    if (this.status === 200) {
@@ -50,8 +48,8 @@ function displayActivitySummary() {
 	   var totalCals = 0;
 		
 	   // TODO: Make sure these exist and are accurate
-	   var initLongitude = this.response.activities.longitude[0];
-	   var initLatitude = this.response.activities.latitude[0];
+	   var initLongitude = this.response.activities[0].loc[0];
+	   var initLatitude = this.response.activities[0].loc[1];
    
 	   // If there's at least one activity, print data
 	   if (this.response.activities.length > 0) {
@@ -66,29 +64,29 @@ function displayActivitySummary() {
 			   var avgSpeed = sum / this.response.activities[i].speed.length; // use to calculate calories
 
 			   // get duration and add to totalDuration
-			   var duration = parseInt(this.response.activities[index].duration, 10);
+			   var duration = parseInt(this.response.activities[i].duration, 10);
 			   totalDuration += duration;
 
 			   // get date
-			   var date = this.response.submitTime;
+			   var date = this.response.activities[i].date;
 			   // get activityType
-			   var activityType = this.response.activityType;
+			   var activityType = this.response.activities[i].activityType;
 
 			   // calculate calories burned and add to totalCals
 			   var calsBurned = 0;
-			   var kiloSpeed = this.response.activities[index].avgSpeed * 3.6;
+			   var kiloSpeed = avgSpeed * 3.6;
 			   switch(activityType) {
-				   case "walking":
+				   case "Walking":
 					   // CB = [0.0215 x KPH3 - 0.1765 x KPH2 + 0.8710 x KPH + 1.4577] x WKG x T
 					   calsBurned = (0.0215 * (kiloSpeed)^3 - 0.1765 * (kiloSpeed)^2 + 0.8170 * kiloSpeed + 1.4577) * (68.038) * (duration / 60);
 					   break;
-				   case "running":
+				   case "Running":
 					   // Kcal/Min ~= respiratoryExchangeRatio * massKg * VO2 / 1000
 					   // VO2 = (0.2 * metersMin) + 3.5
 					   var VO2 = (0.2 * avgSpeed) + 3.5;
 					   calsBurned = (4.86 * 68.038 * VO2) * duration;
 					   break;
-				   case "biking":
+				   case "Biking":
 					   // calsBurned = WKG * 6 * 60/duration
 					   calsBurned = ((68.038) * 6 * 60) / duration;
 					   break;
@@ -100,7 +98,7 @@ function displayActivitySummary() {
 
 			   // get UV exposure and add to totalUV
 			   // TODO: I'm not sure if this should be calculating an average
-			   totalUV += parseInt(this.response,activities[index].uv, 10);
+			   totalUV += parseInt(this.response.activities[i].uv, 10);
            }
 		   // display total counts in respective spans
 		   document.getElementById("activityDate").textContent = date;
@@ -110,32 +108,38 @@ function displayActivitySummary() {
 		   document.getElementById("totalCals").textContent = totalCals;
 
 		   // Draw Google Maps screen at the initial latitude and longitude
+		   map = new google.maps.Map(document.getElementById('map'), {
+			   center: {lat: initLatitude, lng: initLongitude},
+			   zoom: 18
+		   });
 		   map.data.setStyle(function(feature) {
 			   return /** @type {google.maps.Data.StyleOptions} */({
 				   icon: "https://maps.gstatic.com/intl/en_us/mapfiles/markers2/measle.png"
 			   });
 		   });
-		   map = new google.maps.Map(document.getElementById('map'), {
-			   center: {lat: initLatitude, lng: initLongitude},
-			   zoom: 8
-		   });
 
-		   var ActivityPathCoordinates = [];
+		   var activityPathCoordinates = [];
 			// get the first activtiy (there should only be 1)
-		   // TODO: Assumming number of lats = number of longs
-		   for(let i = 0; i < this.activities[0].latitude.length; i++) {
-			   let lat = this.activities[0].latitude[i];
-			   let lng = this.activities[0].longitude[i];
+		   // TODO: Assuming activites[0] is the selected activity
+		   for(let i = 0; i < this.response.activities[0].loc.length; i++) {
+			   let lat = this.response.activities[0].loc[1];
+			   let lng = this.response.activities[0].loc[0];
 			   activityPathCoordinates.push({lat: lat, lng: lng});
 		   }
 		   var activityPath = new google.maps.Polyline({
-			   path: flightPlanCoordinates,
+			   path: activityPathCoordinates,
 			   geodesic: true,
 			   strokeColor: '#FF0000',
 			   strokeOpacity: 1.0,
 			   strokeWeight: 2
 		   });
 
+		   var myLatLng = {lat: initLatitude, lng: initLongitude};
+		   var marker = new google.maps.Marker({
+			   position: myLatLng,
+			   map: map,
+			   title: 'Starting point'
+		   });
 		   activityPath.setMap(map);
 
 	   }

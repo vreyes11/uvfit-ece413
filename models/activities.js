@@ -1,19 +1,21 @@
 var db = require("../db");
 
+
 // Define the schema
 var activities = new db.Schema({
 	activityID: { type: Number, default: 1 },
-	longitude:  { type: [Number], index: '2dsphere'},
-	latitude:   { type: [Number], index: '2dsphere'},
-    uvExposure: [Number],
-    speed: [Number],
+	loc:           { type: [Number], index: '2dsphere'},
+	//longitude:  { type: [Number], default: 0 },
+	//latitude:   { type: [Number], default: 0 },
+    uvExposure: { type: [Number], default: 0 },
+    speed: { type: [Number], default: 0 },
     submitTime: { type: [Date], default: Date.now },
-	duration: Number,
+	duration: { type: Number, default: 0 },
 	activityType: { type: String, default: "walking" }
 		// supported activity types are: walking, running, and biking.
 });
 
-// Creates a Devices (plural) collection in the db using the fitData schema
+// Creates an Activities (plural) collection in the db using the activities schema
 var Activities = db.model("Activities", activities);
 
 module.exports = Activities;
