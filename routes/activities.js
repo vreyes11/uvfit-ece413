@@ -40,7 +40,10 @@ router.post("/init", function(req, res) {
         success : false,
         message : "",
     };
-	
+
+	console.log("Recieved request.");
+	console.log("The parameters are as follows: activityID: " + req.body.activityID);
+
     // Ensure the POST data include required properties    
     
     //
@@ -59,7 +62,7 @@ router.post("/init", function(req, res) {
         return res.status(201).send(JSON.stringify(responseJson));
     }
     
-    if( !req.body.hasOwnProperty("longitude") ) {
+   /* if( !req.body.hasOwnProperty("longitude") ) {
         responseJson.message = "Request missing longitude parameter.";
         return res.status(201).send(JSON.stringify(responseJson));
     }
@@ -67,10 +70,15 @@ router.post("/init", function(req, res) {
     if( !req.body.hasOwnProperty("latitude") ) {
         responseJson.message = "Request missing latitude parameter.";
         return res.status(201).send(JSON.stringify(responseJson));
-    }
+    }*/
     
     if( !req.body.hasOwnProperty("time") ) {
         responseJson.message = "Request missing time parameter.";
+        return res.status(201).send(JSON.stringify(responseJson));
+    }
+    
+	if( !req.body.hasOwnProperty("totalTime") ) {
+        responseJson.message = "Request missing totalTime parameter.";
         return res.status(201).send(JSON.stringify(responseJson));
     }
 	
@@ -86,31 +94,42 @@ router.post("/init", function(req, res) {
             responseJson.message = "Invalid apikey for device ID " + req.body.deviceId + ".";
             return res.status(201).send(JSON.stringify(responseJson));
         }
+
+		console.log("BEFORE: var activity = new Activity()");
+
+		console.log("req.body.activityID = " + req.body.activityID);
                
              //////////////////////////////////////////////////////////////////////
              // New activity
              /////////////////////////////
                  // Create a new activity and save the activity to the database
                  var activity = new Activity({
-					 activityID: req.body.activityID,
-                     longitude:  req.body.longitude,
-                     latitude:   req.body.latitude,
+		     		 activityID: req.body.activityID,
+                     loc: [ req.body.longitude, req.body.latitude ],
+					 duration:   req.body.totalTime, // must be overwritten by sending duration with the last data point to /add
                      submitTime: Date.now(),
                  });				
                  responseJson.message = "New activity recorded.";
             // }                
 
-             // Save the activity data. 
+			 console.log("BEFORE: activity.save()");
+             
+		// Save the activity data. 
              activity.save(function(err, newActivity) {
                  if (err) {
+					 console.log("ERROR: in saving data in db. " + err);
                      responseJson.status = "ERROR";
                      responseJson.message = "Error saving data in db." + err;
                      return res.status(201).send(JSON.stringify(responseJson));
                  }
-
-                 responseJson.success = true;
+				
+				 console.log("Activity (supposedly) saved to db.");
+                 
+				 responseJson.success = true;
                  return res.status(201).send(JSON.stringify(responseJson));
            // });
+			 console.log("AFTER: activity.save()");
+
          });  
     });
 });
@@ -162,17 +181,28 @@ router.post("/add", function(req, res) {
         responseJson.message = "Request speed parameter.";
         return res.status(201).send(JSON.stringify(responseJson));
     }
+
+	console.log("Update activity");
+	console.log("activity ID = " + req.body.activityID);
+	console.log("uv = " + req.body.uv);
+	console.log("speed = " + req.body.speed);
+	console.log("lat = " + req.body.latitude);
+	console.log("long = " + req.body.longitude);
     
 	// assign activityType based on the speed parameter
 	// change the range above
 	var activityTypeString = "";
 	if( req.body.speed <= upperWalkingSpeed ) {
-		activityTypeString = "walking";
+		activityTypeString = "Walking";
 	} else if( req.body.speed > upperWalkingSpeed && req.body.speed <= lowerBikingSpeed ) {
-		activityTypeString = "running";
+		activityTypeString = "Running";
 	} else {
-		activityTypeString = "biking";
+		activityTypeString = "Biking";
 	}
+	
+	// Make the data point from parameters
+	var point = [[ req.body.longitude, req.body.latitude ]];
+	
 
     // Find the device and verify the apikey                                           
     Device.findOne({ deviceId: req.body.deviceId }, function(err, device) {
@@ -188,15 +218,18 @@ router.post("/add", function(req, res) {
 				
 		// Update activity arrays here.
 		if(!req.body.duration) {
-			Activity.findOneAndUpdate({ activityID: req.body.activityID },
+			Activity.update(
+				{ activityID: req.body.activityID },
 				{ "$set": { "activityType": activityTypeString } },
-				{ "$push": { "longitude": req.body.longitude, "latitude": req.body.latitude, "uvExposure": req.body.uv, "speed": req.body.speed, "submitTime": req.body.time}}).exec(function(err, activity) {
+				{ "$push": { "loc": point, "uvExposure": req.body.uv, "speed": req.body.speed, "submitTime": req.body.time}}).exec(function(err, activity) {
 					if(err) {
 						console.log(err);
 						responseJson.message = err;
 						responseJson.success = false;
 						res.status(500).send(responseJson);
-					} else {
+					} else {	
+						console.log("Activity (supposedly) updated to db.");
+						
 						responseJson.message = "Activity successfuly updated.";
 						responseJson.success = true;
 						res.status(200).send(responseJson);
@@ -206,10 +239,10 @@ router.post("/add", function(req, res) {
 			
 		} 
 		else {
-			// if duration is provided, then the last data point has been sent
-			Activity.findOneAndUpdate({ activityID: req.body.activityID },
+			Activity.update(
+				{ activityID: req.body.activityID },
 				{ "$set": { "activityType": activityTypeString, "duration": req.body.duration  }},
-				{ "$push": { "longitude": req.body.longitude, "latitude": req.body.latitude, "uvExposure": req.body.uv, "speed": req.body.speed, "submitTime": req.body.time}}).exec(function(err, activity) {
+				{ "$push": { "loc": point, "uvExposure": req.body.uv, "speed": req.body.speed, "submitTime": req.body.time}}).exec(function(err, activity) {
 					if(err) {
 						console.log(err);
 						responseJson.message = err;
@@ -226,6 +259,55 @@ router.post("/add", function(req, res) {
 		}
 	});
 
+});
+
+// GET: Returns all activities submitted by the device
+// Authentication: Token. A user must be signed in to access this endpoint
+router.get("/all", function(req, res) {
+    var responseJson = {
+        success: true,
+        message: "",
+        activities: [],
+    };
+    
+    if (authenticateRecentEndpoint) {
+        decodedToken = authenticateAuthToken(req);
+        if (!decodedToken) {
+            responseJson.success = false;
+            responseJson.message = "Authentication failed";
+            return res.status(401).json(responseJson);
+        }
+    }
+    
+	// retrieve all activities
+    Activity.find( {}, function(err, allActivities) {
+        if (err) {
+            responseJson.success = false;
+            responseJson.message = "Error accessing db.";
+            return res.status(400).send(JSON.stringify(responseJson));
+		} else {
+			responseJson.success = true;
+			var index = 1;
+			for(var activity of allActivities) {
+				if(index == activity.activityID) {
+					index++; // first matches with activityID = 1, then the next match will be when the activity is activityID = 2, etc
+					responseJson.activities.push({ 
+						activityID: activity.activityID,
+						loc: activity.loc, // [ long, lat ]
+						uv: activity.uvExposure, // same
+						speed: activity.speed,  // same
+						date: activity.submitTime, // same 
+						duration: activity.duration,
+						activityType: activity.activityType
+					});
+
+				}
+			}
+		}
+		res.status(200).json(responseJson)
+	
+	});
+    
 });
 
 // GET: Returns all activities first submitted in the previous specified number of days
@@ -270,23 +352,34 @@ router.get("/recent/:days", function(req, res) {
             responseJson.message = "Error accessing db.";
             return res.status(400).send(JSON.stringify(responseJson));
         }
-        else {  
-            var numRecentActivities = 0;
-            for (var activity of recentActivities) {
-                // Add activity data to the response's asctivities array
-                numRecentActivities++;
-                responseJson.activities.push({
-                    latitude: activity.latitude[0],
-                    longitude: activity.longitude[0],
-                    uv: activity.uvExposure, // send whole uv array
-                    speed: activity.speed, // send whole speed array
-                    date: activity.submitTime[0],
-					duration: activity.duration,
-					activityType: activity.activityType
-                });
-            }
-            responseJson.message = "In the past " + days + " days, " + numRecentActivities + " UVFit activities have been submitted.";
-            return res.status(200).send(JSON.stringify(responseJson));
+        else { 
+			var numRecentActivities = 0;
+			if(recentActivities) {
+				var index = 1;
+				for (var activity of recentActivities) {
+					//console.log(activity.activityID); // debug to show activityID order in database
+					if(index == activity.activityID) {
+						index++; // to make sure that only the first of a series of data points of activityID are sent, this is the updated one
+						// Add activity data to the response's activities array
+						numRecentActivities++;
+						responseJson.activities.push({
+							activityID: activity.activityID,
+							loc: activity.loc, // [ long, lat ]
+							uv: activity.uvExposure, // send whole uv array
+							speed: activity.speed, // send whole speed array
+							date: activity.submitTime[0],
+							duration: activity.duration,
+							activityType: activity.activityType
+						});
+					}
+				}
+				responseJson.message = "In the past " + days + " days, " + numRecentActivities + " UVFit activities have been submitted.";
+				return res.status(200).send(JSON.stringify(responseJson));
+			
+			} else {
+				responseJson.message = "In the past " + days + " days, " + numRecentActivities + " UVFit activities have been submitted.";
+				return res.status(200).send(JSON.stringify(responseJson));
+			}
         }
     })
 });
@@ -326,8 +419,7 @@ router.get("/get/:date", function(req, res) {
 			responseJson.message = "Activity found with parameter date = " + date;
 			for(var activity of allActivities) {
 				responseJson.activities.push({ 
-                    latitude: activity.latitude, // map coordinates, send the whole array
-                    longitude: activity.longitude, // send whole array
+					loc: activity.loc, // [ long, lat ]
                     uv: activity.uvExposure, // same
                     speed: activity.speed,  // same
                     date: activity.submitTime, // same 
@@ -335,6 +427,57 @@ router.get("/get/:date", function(req, res) {
 					activityType: activity.activityType
 				});
 			}
+		}
+		res.status(200).json(responseJson)
+	});
+});
+
+
+// GET: Returns the activity specified by the lncluded activityID
+// Authentication: Token. A user must be signed in to access this endpoint
+router.get("/id", function(req, res) {
+
+    var responseJson = {
+        success: true,
+        message: "",
+        activities: [],
+    };
+	
+    var activityID = req.query.activityID;
+	console.log("In server, specified activityID = " + activityID);
+    
+    
+    if (authenticateRecentEndpoint) {
+        decodedToken = authenticateAuthToken(req);
+        if (!decodedToken) {
+            responseJson.success = false;
+            responseJson.message = "Authentication failed";
+            return res.status(401).json(responseJson);
+        }
+    }
+    
+   // find the activity with the activityID
+	var query = {
+		"activityID" : activityID
+	};
+	
+	// assumes that the first one found is the updated activity
+	Activity.findOne(query, function(err, activity) {
+        if (err) {
+            responseJson.success = false;
+            responseJson.message = "Error accessing db.";
+            return res.status(400).send(JSON.stringify(responseJson));
+		} else {
+			responseJson.success = true;
+			responseJson.message = "Activity found with parameter activityID = " + activityID;
+			responseJson.activities.push({ 
+				loc: activity.loc, // [ long, lat ]
+				uv: activity.uvExposure, // same
+				speed: activity.speed,  // same
+				date: activity.submitTime, // same 
+				duration: activity.duration,
+				activityType: activity.activityType
+			});
 		}
 		res.status(200).json(responseJson)
 	});

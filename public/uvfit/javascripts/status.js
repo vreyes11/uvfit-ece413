@@ -68,7 +68,7 @@ function sendReqForDeleteDevice() {
     }); 
 }
 
-function accountInfoSuccess(data, textSatus, jqXHR) {
+function accountInfoSuccess(data, textStatus, jqXHR) {
    $("#email").html(data.email);
    $("#fullName").html(data.fullName);
    $("#lastAccess").html(data.lastAccess);
@@ -173,7 +173,7 @@ function accountInfoError(jqXHR, textStatus, errorThrown) {
 function sendReqForUpdateUVThreshold() {
    var newThreshold = $("#threshold").val();
    var input = parseInt(newThreshold, 10);
-   var re = /^([0-9]|10)$/;	
+   var re = /^[0-9]*$/;	
 	
 	if(!re.test(newThreshold.toString())) {
 		$("#error").html("Please match the threshold criteria and try again.")
@@ -233,16 +233,16 @@ function sendUVThreshold() {
 	console.log("uvThreshold is " + uvThreshold);
 	var deviceID = "2f0034000f47363336383437";
 	var accessToken = "377a0c9a008dbe94af700e780b313b18ec335f86"; // CHANGE accessToken here.
-	var functionName = "setUVThresh";
+	var functionName = "setUV";
 
     $.ajax({
 		url: 'https://api.particle.io/v1/devices/' + deviceID +'/' + functionName +
-		'?access_token=' + accessToken + '&args=' + uvThreshold,
+		'?access_token=' + accessToken + '&command=' + uvThreshold,
         type: 'POST',
-        //data:'?access_token=' + accessToken + '&args='+ uvThreshold,
+        data:'&command=' + uvThreshold, // data sent here
 		responseType: 'json',
         success: function (data) {
-        	console.log("POST succesful, UV threshold sent to device. " + data);
+        	console.log("POST succesful, UV threshold sent to device. ");
 		}, 
         error: function(jqXHR, textStatus, errorThrown) {
             var response = JSON.parse(jqXHR.responseText);
